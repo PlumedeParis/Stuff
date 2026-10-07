@@ -9,7 +9,7 @@ pupitre de conduite et affichage tête haute. **Tout se fabrique en survie.**
 ## Installation
 
 1. Installer [Fabric Loader](https://fabricmc.net/use/) ≥ 0.19.5 pour Minecraft **1.21.11** et [Fabric API](https://modrinth.com/mod/fabric-api).
-2. Compiler le mod : `./gradlew build` (Java 21). Le fichier se trouve dans `build/libs/rail-express-1.0.0.jar`.
+2. Compiler le mod : `./gradlew build` (Gradle doit tourner avec Java 25 ; le mod cible Java 21). Le fichier se trouve dans `build/libs/rail-express-1.0.0.jar`.
 3. Copier le `.jar` dans le dossier `mods`.
 
 Pour tester directement : `./gradlew runClient`.
