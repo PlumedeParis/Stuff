@@ -57,8 +57,7 @@ public class TrainPartEntity extends Entity {
 		return this.level().getEntity(this.entityData.get(DATA_PARENT)) instanceof TrainCarEntity car ? car : null;
 	}
 
-	@Nullable
-	private CarLayout.Piece piece(@Nullable TrainCarEntity parent) {
+	private CarLayout.Piece piece(TrainCarEntity parent) {
 		if (parent == null) {
 			return null;
 		}
@@ -89,19 +88,6 @@ public class TrainPartEntity extends Entity {
 		}
 		orphanTicks = 0;
 		refresh(parent);
-	}
-
-	@Override
-	protected AABB makeBoundingBox() {
-		if (this.entityData == null) {
-			return super.makeBoundingBox();
-		}
-		TrainCarEntity parent = getParent();
-		CarLayout.Piece piece = piece(parent);
-		if (piece != null) {
-			return parent.worldBox(piece.box());
-		}
-		return super.makeBoundingBox();
 	}
 
 	@Override

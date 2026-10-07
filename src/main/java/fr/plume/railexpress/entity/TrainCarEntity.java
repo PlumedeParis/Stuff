@@ -400,7 +400,6 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 		return seatAssignments.getOrDefault(passenger.getUUID(), -1);
 	}
 
-	@Nullable
 	public CarLayout.Seat seatFor(Entity passenger) {
 		int index = seatOf(passenger);
 		List<CarLayout.Seat> seats = carType.layout().seats;
