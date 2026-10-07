@@ -923,7 +923,7 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 	// ------------------------------------------------------------------
 
 	private void clientTick() {
-		interpolation.tick();
+		interpolation.interpolate();
 		Vec3 delta = this.position().subtract(this.xo, this.yo, this.zo);
 		Vec3 look = Vec3.directionFromRotation(0.0F, this.getYRot());
 		double moved = Math.sqrt(delta.x * delta.x + delta.z * delta.z) * (delta.dot(look) >= 0 ? 1 : -1);
