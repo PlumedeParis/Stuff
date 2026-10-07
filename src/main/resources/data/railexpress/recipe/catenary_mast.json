@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SSC",
+    "S  ",
+    "S  "
+  ],
+  "key": {
+    "S": "railexpress:steel_ingot",
+    "C": "minecraft:copper_ingot"
+  },
+  "result": {
+    "id": "railexpress:catenary_mast",
+    "count": 4
+  }
+}

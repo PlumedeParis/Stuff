@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "  C",
+    "BBS",
+    "WWW"
+  ],
+  "key": {
+    "C": "minecraft:iron_bars",
+    "B": "railexpress:boiler",
+    "S": "railexpress:steel_ingot",
+    "W": "railexpress:wheel_set"
+  },
+  "result": {
+    "id": "railexpress:steam_locomotive",
+    "count": 1
+  }
+}

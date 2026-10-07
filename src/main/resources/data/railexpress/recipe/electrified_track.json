@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "TCT",
+    "TRT",
+    "TCT"
+  ],
+  "key": {
+    "T": "railexpress:high_speed_track",
+    "C": "minecraft:copper_ingot",
+    "R": "minecraft:redstone"
+  },
+  "result": {
+    "id": "railexpress:electrified_track",
+    "count": 6
+  }
+}

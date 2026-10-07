@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SCS",
+    "SCS",
+    "W W"
+  ],
+  "key": {
+    "S": "railexpress:steel_ingot",
+    "C": "minecraft:chest",
+    "W": "railexpress:wheel_set"
+  },
+  "result": {
+    "id": "railexpress:tender",
+    "count": 1
+  }
+}

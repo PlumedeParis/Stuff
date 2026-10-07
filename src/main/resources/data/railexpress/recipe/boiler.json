@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SSS",
+    "SFS",
+    "SBS"
+  ],
+  "key": {
+    "S": "railexpress:steel_ingot",
+    "F": "minecraft:furnace",
+    "B": "minecraft:bucket"
+  },
+  "result": {
+    "id": "railexpress:boiler",
+    "count": 1
+  }
+}

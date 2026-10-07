@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "railexpress:track",
+    "railexpress:high_speed_track",
+    "railexpress:electrified_track",
+    "railexpress:station_track",
+    "railexpress:substation",
+    "railexpress:catenary_mast",
+    "railexpress:buffer_stop",
+    "railexpress:platform"
+  ]
+}

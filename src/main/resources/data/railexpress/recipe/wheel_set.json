@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " S ",
+    "SIS",
+    " S "
+  ],
+  "key": {
+    "S": "railexpress:steel_ingot",
+    "I": "minecraft:iron_ingot"
+  },
+  "result": {
+    "id": "railexpress:wheel_set",
+    "count": 2
+  }
+}

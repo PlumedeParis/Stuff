@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "railexpress:block/catenary_mast"
+  }
+}

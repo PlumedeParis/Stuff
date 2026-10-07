@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "W  ",
+    "WWW",
+    "S S"
+  ],
+  "key": {
+    "W": "#minecraft:wool",
+    "S": "railexpress:steel_ingot"
+  },
+  "result": {
+    "id": "railexpress:train_seat",
+    "count": 2
+  }
+}

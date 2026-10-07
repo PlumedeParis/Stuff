@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PGP",
+    "TTT",
+    "W W"
+  ],
+  "key": {
+    "P": "#minecraft:planks",
+    "G": "minecraft:glass_pane",
+    "T": "railexpress:train_seat",
+    "W": "railexpress:wheel_set"
+  },
+  "result": {
+    "id": "railexpress:passenger_coach",
+    "count": 1
+  }
+}

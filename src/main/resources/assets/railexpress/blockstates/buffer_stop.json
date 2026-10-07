@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "railexpress:block/buffer_stop"
+    },
+    "facing=east": {
+      "model": "railexpress:block/buffer_stop",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "railexpress:block/buffer_stop",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "railexpress:block/buffer_stop",
+      "y": 270
+    }
+  }
+}

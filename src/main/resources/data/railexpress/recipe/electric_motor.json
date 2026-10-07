@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CRC",
+    "SIS",
+    "CRC"
+  ],
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "R": "minecraft:redstone",
+    "S": "railexpress:steel_ingot",
+    "I": "minecraft:iron_ingot"
+  },
+  "result": {
+    "id": "railexpress:electric_motor",
+    "count": 1
+  }
+}

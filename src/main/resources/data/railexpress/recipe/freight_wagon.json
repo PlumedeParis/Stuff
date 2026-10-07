@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PPP",
+    "PCP",
+    "W W"
+  ],
+  "key": {
+    "P": "#minecraft:planks",
+    "C": "minecraft:chest",
+    "W": "railexpress:wheel_set"
+  },
+  "result": {
+    "id": "railexpress:freight_wagon",
+    "count": 1
+  }
+}

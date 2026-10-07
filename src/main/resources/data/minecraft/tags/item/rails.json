@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "railexpress:track",
+    "railexpress:high_speed_track",
+    "railexpress:electrified_track",
+    "railexpress:station_track"
+  ]
+}

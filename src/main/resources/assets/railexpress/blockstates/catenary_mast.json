@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "railexpress:block/catenary_mast"
+    },
+    "facing=east": {
+      "model": "railexpress:block/catenary_mast",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "railexpress:block/catenary_mast",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "railexpress:block/catenary_mast",
+      "y": 270
+    }
+  }
+}

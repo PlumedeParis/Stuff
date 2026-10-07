@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SCS",
+    "CRC",
+    "SCS"
+  ],
+  "key": {
+    "S": "railexpress:steel_ingot",
+    "C": "minecraft:copper_ingot",
+    "R": "minecraft:redstone_block"
+  },
+  "result": {
+    "id": "railexpress:substation",
+    "count": 1
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CCC",
+    " S ",
+    "S S"
+  ],
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "S": "railexpress:steel_ingot"
+  },
+  "result": {
+    "id": "railexpress:pantograph",
+    "count": 1
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "S S",
+    "SCS",
+    "S S"
+  ],
+  "key": {
+    "S": "railexpress:steel_ingot",
+    "C": "minecraft:stone"
+  },
+  "result": {
+    "id": "railexpress:track",
+    "count": 16
+  }
+}

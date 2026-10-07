@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RYR",
+    "S S",
+    "SSS"
+  ],
+  "key": {
+    "R": "minecraft:red_dye",
+    "Y": "minecraft:yellow_dye",
+    "S": "railexpress:steel_ingot"
+  },
+  "result": {
+    "id": "railexpress:buffer_stop",
+    "count": 1
+  }
+}

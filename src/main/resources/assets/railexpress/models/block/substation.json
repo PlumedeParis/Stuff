@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "railexpress:block/substation_top",
+    "side": "railexpress:block/substation_side"
+  }
+}

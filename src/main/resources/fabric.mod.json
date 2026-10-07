@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"id": "railexpress",
+	"version": "${version}",
+	"name": "Rail Express",
+	"description": "Trains complets pour Minecraft : locomotives à vapeur, TGV, Shinkansen, voies électrifiées, gares, attelages et pupitre de conduite.",
+	"authors": ["PlumeDeParis"],
+	"license": "MIT",
+	"icon": "assets/railexpress/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["fr.plume.railexpress.RailExpress"],
+		"client": ["fr.plume.railexpress.client.RailExpressClient"]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}

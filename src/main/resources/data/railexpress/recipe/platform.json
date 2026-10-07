@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "YYY",
+    "CCC",
+    "CCC"
+  ],
+  "key": {
+    "Y": "minecraft:yellow_dye",
+    "C": "minecraft:smooth_stone"
+  },
+  "result": {
+    "id": "railexpress:platform",
+    "count": 8
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": "minecraft:iron_ingot",
+  "result": {
+    "id": "railexpress:steel_ingot"
+  },
+  "experience": 0.7,
+  "cookingtime": 100
+}
