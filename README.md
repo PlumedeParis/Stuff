@@ -4,7 +4,8 @@ Locomotives à vapeur, TGV, Shinkansen, voies à grande vitesse électrifiées, 
 pupitre de conduite et affichage tête haute. **Tout se fabrique en survie.**
 
 ![Aperçu des véhicules](docs/apercu_vehicules.png)
-![Locomotive à vapeur](docs/apercu_vapeur.png)
+![Rails 3D](docs/apercu_rails.png)
+![Intérieur d'une voiture-couchettes](docs/apercu_interieur.png)
 
 ## Installation
 
@@ -14,46 +15,28 @@ pupitre de conduite et affichage tête haute. **Tout se fabrique en survie.**
 
 Pour tester directement : `./gradlew runClient`.
 
-## Véhicules
+## Véhicules (37)
 
-| Véhicule | Énergie | Vitesse max. | Particularités |
-|---|---|---|---|
-| Locomotive à vapeur | Charbon / charbon de bois / bloc de charbon | 90 km/h | Fumée, bielles animées, sifflet |
-| Tender à charbon | — | — | 9 emplacements, alimente la locomotive attelée |
-| Voiture voyageurs | — | — | 8 places assises |
-| Wagon de marchandises | — | — | 27 emplacements (comme un coffre) |
-| Motrice TGV | Électricité (caténaire) | 180 km/h | Pantographe avec étincelles |
-| Voiture TGV | — | — | 10 places |
-| Motrice Shinkansen (N700) | Électricité (caténaire) | 198 km/h | Nez « bec de canard » |
-| Voiture Shinkansen | — | — | 10 places |
+**Locomotives** : vapeur, Orient-Express (Pacific bleu nuit et or), diesel (carburant ou charbon),
+électrique BB (deux cabines), TGV bleu, TGV orange, Eurostar, ICE, Shinkansen.
 
-Les modèles 3D sont générés procéduralement (nez aérodynamiques lissés, roues qui tournent,
-bielles de la vapeur animées, caisse qui suit la corde des bogies dans les courbes).
+**Voitures voyageurs** : voiture classique, voiture-couchettes (dortoir), voiture-restaurant (cantine),
+voiture salon (repos), 1re classe de luxe, voiture panoramique, fourgon à bagages, voiture postale,
+voiture-lits / restaurant / salon / fourgon Orient-Express, voitures TGV, voiture-bar TGV, TGV Duplex (deux niveaux),
+TGV orange, Eurostar, ICE, Shinkansen et voiture verte Shinkansen.
 
-## Voies et blocs
+**Marchandises** : tender, wagon couvert, citerne, trémie, porte-conteneurs, grumes, bestiaux, fourgon de queue.
 
-| Bloc | Rôle |
-|---|---|
-| Voie ferrée | Voie standard, courbes et pentes, 72 km/h max. |
-| Voie LGV | Grande vitesse, 198 km/h max. |
-| Voie LGV électrifiée | Alimente TGV et Shinkansen quand elle est sous tension |
-| Sous-station électrique | Met sous tension les voies électrifiées reliées (jusqu'à 64 rails) — toute source de redstone fonctionne aussi |
-| Voie d'arrêt en gare | Le train freine, s'arrête 6 s puis repart. Alimentée en redstone : le train passe sans s'arrêter |
-| Heurtoir, poteau de caténaire, bordure de quai | Décoration |
+## Intérieurs
 
-Les rails vanilla fonctionnent aussi (limités à 36 km/h).
-
-## Jouer
-
-- **Poser un véhicule** : clic droit sur une voie plate avec l'objet (il s'oriente dans la direction regardée).
-- **Atteler** : outil d'attelage, clic droit sur un véhicule puis sur un second.
-  Accroupi + clic droit : dételer. Ex. : motrice TGV + 6 voitures TGV + motrice TGV retournée (rame réversible).
-- **Monter** : clic droit. **Pupitre de conduite** : accroupi + clic droit, ou touche *Inventaire* quand on est à bord.
-- **Conduire** depuis la locomotive : *Avancer* = plus de traction, *Reculer* = moins de traction puis frein, *Saut* = klaxon.
-- **Charbon** : clic droit avec du charbon sur la locomotive, dans le foyer du pupitre, ou dans un tender attelé.
-- **Électricité** : les motrices électriques ont une batterie qui se recharge sur voie électrifiée sous tension ;
-  hors tension, elles roulent sur la batterie quelques secondes puis s'arrêtent.
-- **Casser un véhicule** : le frapper plusieurs fois (il est rendu avec son contenu).
+- Toute la caisse est cliquable et solide : on marche sur le plancher, entre les parois (sur une voie droite).
+- **Portes** : clic droit sur une porte pour l'ouvrir ou la fermer (elles se ferment au départ du train).
+- **Sièges, fauteuils, canapés, tabourets** : clic droit sur la place voulue pour s'y asseoir.
+- **Couchettes** : s'allonger la nuit ; quand tous les joueurs dorment, le jour se lève.
+- **Rangements** (porte-bagages, étagères, cuisine, casiers) : clic droit pour ouvrir le stockage du wagon.
+- **Pupitre de conduite** des locomotives : clic droit dessus, ou touche *Inventaire* une fois assis.
+- Les joueurs debout dans un wagon sont transportés avec le train (assis, c'est plus confortable à grande vitesse).
+- **Animaux** : clic droit sur le wagon à bestiaux avec des animaux en laisse pour les embarquer.
 
 ## Recettes (survie)
 
@@ -80,6 +63,8 @@ Acier : fondre un lingot de fer au **haut fourneau** (ou au four, plus lent).
 | Voiture TGV | `BvB / SSS / E_E` |
 | Motrice Shinkansen | `vpW / MAM / E_E` (W = béton blanc) |
 | Voiture Shinkansen | `WvW / SSS / E_E` |
+
+Toutes les recettes des nouveaux véhicules sont visibles dans le livre de recettes du jeu (essieux, sièges, moteurs, pantographes, chaudières, béton coloré…).
 
 ## Développement
 
