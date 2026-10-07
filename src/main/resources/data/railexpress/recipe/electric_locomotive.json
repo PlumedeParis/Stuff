@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CPC",
+    "MSM",
+    "W W"
+  ],
+  "key": {
+    "C": "minecraft:red_concrete",
+    "P": "railexpress:pantograph",
+    "M": "railexpress:electric_motor",
+    "S": "railexpress:steel_ingot",
+    "W": "railexpress:wheel_set"
+  },
+  "result": {
+    "id": "railexpress:electric_locomotive",
+    "count": 1
+  }
+}

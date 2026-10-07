@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "LGL",
+    "TKO",
+    "W W"
+  ],
+  "key": {
+    "W": "railexpress:wheel_set",
+    "L": "minecraft:blue_wool",
+    "G": "minecraft:glass_pane",
+    "T": "railexpress:train_seat",
+    "K": "minecraft:smoker",
+    "O": "minecraft:gold_ingot"
+  },
+  "result": {
+    "id": "railexpress:orient_express_dining",
+    "count": 1
+  }
+}

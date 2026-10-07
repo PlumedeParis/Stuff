@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CGY",
+    "TTT",
+    "W W"
+  ],
+  "key": {
+    "W": "railexpress:wheel_set",
+    "C": "minecraft:white_concrete",
+    "G": "minecraft:glass_pane",
+    "Y": "minecraft:yellow_concrete",
+    "T": "railexpress:train_seat"
+  },
+  "result": {
+    "id": "railexpress:eurostar_car",
+    "count": 1
+  }
+}

@@ -8,18 +8,19 @@
       "y": 90
     },
     "shape=ascending_north": {
-      "model": "railexpress:block/high_speed_track_raised_ne"
+      "model": "railexpress:block/high_speed_track_raised"
     },
     "shape=ascending_east": {
-      "model": "railexpress:block/high_speed_track_raised_ne",
+      "model": "railexpress:block/high_speed_track_raised",
       "y": 90
     },
     "shape=ascending_south": {
-      "model": "railexpress:block/high_speed_track_raised_sw"
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 180
     },
     "shape=ascending_west": {
-      "model": "railexpress:block/high_speed_track_raised_sw",
-      "y": 90
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 270
     },
     "shape=south_east": {
       "model": "railexpress:block/high_speed_track_corner"

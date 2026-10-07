@@ -7,10 +7,10 @@
     "W W"
   ],
   "key": {
+    "W": "railexpress:wheel_set",
     "B": "minecraft:blue_concrete",
     "G": "minecraft:glass_pane",
-    "T": "railexpress:train_seat",
-    "W": "railexpress:wheel_set"
+    "T": "railexpress:train_seat"
   },
   "result": {
     "id": "railexpress:tgv_car",

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "YPY",
+    "CQC",
+    "W W"
+  ],
+  "key": {
+    "W": "railexpress:wheel_set",
+    "Y": "minecraft:yellow_dye",
+    "P": "#minecraft:planks",
+    "C": "minecraft:chest",
+    "Q": "minecraft:paper"
+  },
+  "result": {
+    "id": "railexpress:post_car",
+    "count": 1
+  }
+}

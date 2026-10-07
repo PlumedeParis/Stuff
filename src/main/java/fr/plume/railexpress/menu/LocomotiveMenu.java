@@ -44,12 +44,12 @@ public class LocomotiveMenu extends AbstractContainerMenu {
 			this.addSlot(new Slot(fuel, i, FUEL_X + i * 18 - 18, FUEL_Y) {
 				@Override
 				public boolean mayPlace(ItemStack stack) {
-					return isSteam() && TrainCarEntity.isSteamFuel(stack);
+					return isFuelPowered() && TrainCarEntity.isFuel(stack);
 				}
 
 				@Override
 				public boolean isActive() {
-					return isSteam();
+					return isFuelPowered();
 				}
 			});
 		}
@@ -70,6 +70,15 @@ public class LocomotiveMenu extends AbstractContainerMenu {
 
 	public boolean isSteam() {
 		return data.get(8) == CarType.Power.STEAM.ordinal();
+	}
+
+	/** Locomotive à vapeur ou diesel (foyer / réservoir). */
+	public boolean isFuelPowered() {
+		return isSteam() || data.get(8) == CarType.Power.DIESEL.ordinal();
+	}
+
+	public boolean isDiesel() {
+		return data.get(8) == CarType.Power.DIESEL.ordinal();
 	}
 
 	public boolean isElectric() {
@@ -98,7 +107,7 @@ public class LocomotiveMenu extends AbstractContainerMenu {
 			if (!this.moveItemStackTo(stack, fuelSlots, this.slots.size(), true)) {
 				return ItemStack.EMPTY;
 			}
-		} else if (isSteam() && TrainCarEntity.isSteamFuel(stack)) {
+		} else if (isFuelPowered() && TrainCarEntity.isFuel(stack)) {
 			if (!this.moveItemStackTo(stack, 0, fuelSlots, false)) {
 				return ItemStack.EMPTY;
 			}

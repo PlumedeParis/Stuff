@@ -1,6 +1,8 @@
 package fr.plume.railexpress.client.screen;
 
+import fr.plume.railexpress.entity.CarLayout;
 import fr.plume.railexpress.entity.CarType;
+import fr.plume.railexpress.entity.TrainSleep;
 import fr.plume.railexpress.entity.TrainCarEntity;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -10,6 +12,8 @@ import net.minecraft.network.chat.Component;
 
 /** Affichage tête haute lorsque le joueur est à bord d'un train. */
 public final class TrainHud {
+	private static float sleepFade;
+
 	private TrainHud() {
 	}
 
@@ -20,7 +24,18 @@ public final class TrainHud {
 		}
 		Font font = mc.font;
 		CarType type = car.getCarType();
-		boolean driver = type.isLocomotive();
+		// Fondu au noir quand on dort dans une couchette la nuit
+		CarLayout.Seat seat = car.seatFor(mc.player);
+		if (seat != null && seat.isBed() && TrainSleep.isNight(mc.level)) {
+			sleepFade = Math.min(1.0F, sleepFade + 0.01F);
+		} else {
+			sleepFade = Math.max(0.0F, sleepFade - 0.05F);
+		}
+		if (sleepFade > 0) {
+			int alpha = (int) (Math.min(0.85F, sleepFade) * 255) << 24;
+			g.fill(0, 0, g.guiWidth(), g.guiHeight(), alpha | 0x0A0A14);
+		}
+		boolean driver = type.isLocomotive() && seat != null && seat.style() == CarLayout.SeatStyle.DRIVER;
 		int w = 170;
 		int h = driver ? 70 : 34;
 		int x = g.guiWidth() - w - 6;
@@ -28,7 +43,7 @@ public final class TrainHud {
 
 		g.fill(x - 1, y - 1, x + w + 1, y + h + 1, 0xC00B0D12);
 		g.fillGradient(x, y, x + w, y + h, 0xC02A303C, 0xC01A1E26);
-		int accent = type.power == CarType.Power.STEAM ? 0xFF2F6B45 : (type.power == CarType.Power.ELECTRIC ? 0xFF2C55A8 : 0xFF6E1F22);
+		int accent = type.power == CarType.Power.DIESEL ? 0xFFD9A11A : type.power == CarType.Power.STEAM ? 0xFF2F6B45 : (type.power == CarType.Power.ELECTRIC ? 0xFF2C55A8 : 0xFF6E1F22);
 		g.fill(x, y, x + 3, y + h, accent);
 
 		Component name = Component.translatable("entity.railexpress." + type.id);
@@ -74,7 +89,7 @@ public final class TrainHud {
 		g.drawString(font, Component.translatable(car.isReversed() ? "gui.railexpress.hud_backward" : "gui.railexpress.hud_forward"), x + 80, y + 33, 0xFFB8C2D0, false);
 		// Énergie / combustible
 		float level = car.getFuelLevel() / 1000.0F;
-		int barColor = type.power == CarType.Power.STEAM ? 0xFFFF8A2B : 0xFF4FA3FF;
+		int barColor = type.power.burnsFuel() ? 0xFFFF8A2B : 0xFF4FA3FF;
 		g.fill(x + 8, y + 44, x + w - 6, y + 48, 0xFF0D1015);
 		g.fill(x + 9, y + 45, x + 9 + (int) ((w - 16) * level), y + 47, barColor);
 		g.pose().pushMatrix();

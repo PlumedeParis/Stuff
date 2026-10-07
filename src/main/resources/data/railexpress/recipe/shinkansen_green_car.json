@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CGE",
+    "TTT",
+    "W W"
+  ],
+  "key": {
+    "W": "railexpress:wheel_set",
+    "C": "minecraft:white_concrete",
+    "G": "minecraft:glass_pane",
+    "E": "minecraft:green_dye",
+    "T": "railexpress:train_seat"
+  },
+  "result": {
+    "id": "railexpress:shinkansen_green_car",
+    "count": 1
+  }
+}

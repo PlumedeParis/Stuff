@@ -1,6 +1,7 @@
 package fr.plume.railexpress.entity;
 
 import fr.plume.railexpress.menu.LocomotiveMenu;
+import fr.plume.railexpress.registry.ModEntities;
 import fr.plume.railexpress.registry.ModItems;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +30,7 @@ import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.HasCustomInventoryScreen;
 import net.minecraft.world.entity.InterpolationHandler;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ChestMenu;
@@ -57,6 +59,8 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 	private static final EntityDataAccessor<Boolean> DATA_LIVE = SynchedEntityData.defineId(TrainCarEntity.class, EntityDataSerializers.BOOLEAN);
 	private static final EntityDataAccessor<Integer> DATA_STATION = SynchedEntityData.defineId(TrainCarEntity.class, EntityDataSerializers.INT);
 	private static final EntityDataAccessor<Integer> DATA_HURT = SynchedEntityData.defineId(TrainCarEntity.class, EntityDataSerializers.INT);
+	private static final EntityDataAccessor<String> DATA_SEATS = SynchedEntityData.defineId(TrainCarEntity.class, EntityDataSerializers.STRING);
+	private static final EntityDataAccessor<Integer> DATA_DOORS = SynchedEntityData.defineId(TrainCarEntity.class, EntityDataSerializers.INT);
 
 	public static final int MAX_THROTTLE = 5;
 	public static final int MAX_ENERGY = 4000;
@@ -96,14 +100,24 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 	private int hornCooldown;
 	private float damage;
 
+	// --- Places, portes et coque ---
+	private final java.util.Map<UUID, Integer> seatAssignments = new java.util.HashMap<>();
+	private final java.util.Map<Integer, Integer> decodedSeats = new java.util.HashMap<>();
+	private String decodedSeatsSource = "";
+	private int pendingSeat = -1;
+	private final List<TrainPartEntity> parts = new ArrayList<>();
+
 	// --- Rendu (client) ---
+	/** Ouverture animée de chaque porte (0 = fermée, 1 = ouverte). */
+	public final float[] doorOpen = new float[16];
+	public final float[] doorOpenO = new float[16];
 	public float wheelRot;
 	public float wheelRotO;
 
 	public TrainCarEntity(EntityType<? extends TrainCarEntity> type, Level level, CarType carType) {
 		super(type, level);
 		this.carType = carType;
-		this.inventory = new SimpleContainer(Math.max(carType.inventorySize, carType.isLocomotive() ? FUEL_SLOTS : 0));
+		this.inventory = new SimpleContainer(Math.max(1, carType.inventorySize));
 	}
 
 	public CarType getCarType() {
@@ -128,6 +142,8 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 		builder.define(DATA_LIVE, false);
 		builder.define(DATA_STATION, 0);
 		builder.define(DATA_HURT, 0);
+		builder.define(DATA_SEATS, "");
+		builder.define(DATA_DOORS, 0);
 	}
 
 	@Override
@@ -138,6 +154,7 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 		this.burnTime = input.getIntOr("BurnTime", 0);
 		this.burnTimeMax = Math.max(1, input.getIntOr("BurnTimeMax", 1));
 		this.energy = input.getIntOr("Energy", 0);
+		this.entityData.set(DATA_DOORS, input.getIntOr("Doors", 0));
 		this.velocity = input.getDoubleOr("Velocity", 0.0);
 		this.frontLink = input.read("FrontLink", UUIDUtil.CODEC).orElse(null);
 		this.backLink = input.read("BackLink", UUIDUtil.CODEC).orElse(null);
@@ -154,6 +171,7 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 		output.putInt("BurnTime", burnTime);
 		output.putInt("BurnTimeMax", burnTimeMax);
 		output.putInt("Energy", energy);
+		output.putInt("Doors", this.entityData.get(DATA_DOORS));
 		output.putDouble("Velocity", velocity);
 		if (frontLink != null) {
 			output.store("FrontLink", UUIDUtil.CODEC, frontLink);
@@ -220,6 +238,14 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 		if (!(source.getEntity() instanceof Player player)) {
 			return false;
 		}
+		// Un joueur à bord ne casse pas son train par mégarde (sauf accroupi)
+		if (!player.isShiftKeyDown()) {
+			Vec3 local = toLocal(player.position());
+			boolean inside = Math.abs(local.x) < CarLayout.HALF_WIDTH + 0.2 && Math.abs(local.z) < carType.length / 2 && local.y > -0.5 && local.y < carType.height;
+			if (player.getVehicle() == this || inside) {
+				return false;
+			}
+		}
 		if (player.getAbilities().instabuild) {
 			destroy(level, false);
 			return true;
@@ -246,22 +272,280 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 	}
 
 	public AABB getBoundingBoxForCulling() {
-		return this.getBoundingBox().inflate(carType.length / 2.0 + 1.0, 1.5, carType.length / 2.0 + 1.0);
+		return this.getBoundingBox().inflate(carType.length / 2.0 + 1.0, 2.0, carType.length / 2.0 + 1.0);
+	}
+
+	// ------------------------------------------------------------------
+	// Repère local du véhicule
+	// ------------------------------------------------------------------
+
+	/** Convertit une position monde en coordonnées locales du véhicule. */
+	public Vec3 toLocal(Vec3 world) {
+		return world.subtract(this.position()).yRot(this.getYRot() * ((float) Math.PI / 180.0F));
+	}
+
+	public Vec3 localToWorld(Vec3 local) {
+		return this.position().add(local.yRot(-this.getYRot() * ((float) Math.PI / 180.0F)));
+	}
+
+	/** Boîte englobante monde d'une boîte locale. */
+	public AABB worldBox(CarLayout.Box b) {
+		double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE, minZ = Double.MAX_VALUE;
+		double maxX = -Double.MAX_VALUE, maxY = -Double.MAX_VALUE, maxZ = -Double.MAX_VALUE;
+		for (int i = 0; i < 8; i++) {
+			Vec3 p = localToWorld(new Vec3((i & 1) == 0 ? b.x0() : b.x1(), (i & 2) == 0 ? b.y0() : b.y1(), (i & 4) == 0 ? b.z0() : b.z1()));
+			minX = Math.min(minX, p.x);
+			minY = Math.min(minY, p.y);
+			minZ = Math.min(minZ, p.z);
+			maxX = Math.max(maxX, p.x);
+			maxY = Math.max(maxY, p.y);
+			maxZ = Math.max(maxZ, p.z);
+		}
+		return new AABB(minX, minY, minZ, maxX, maxY, maxZ);
+	}
+
+	/** Vrai si le véhicule est orienté selon un axe (les parois deviennent alors solides). */
+	public boolean isAxisAligned() {
+		float yaw = ((this.getYRot() % 90.0F) + 90.0F) % 90.0F;
+		return (yaw < 4.0F || yaw > 86.0F) && Math.abs(this.getXRot()) < 5.0F;
+	}
+
+	// ------------------------------------------------------------------
+	// Parties de coque (sélection et collisions)
+	// ------------------------------------------------------------------
+
+	private void manageParts() {
+		if (!(this.level() instanceof ServerLevel serverLevel)) {
+			return;
+		}
+		int expected = carType.layout().pieces.size();
+		boolean broken = parts.size() != expected;
+		for (TrainPartEntity part : parts) {
+			if (part.isRemoved()) {
+				broken = true;
+			}
+		}
+		if (broken) {
+			for (TrainPartEntity part : parts) {
+				part.discard();
+			}
+			parts.clear();
+			for (int i = 0; i < expected; i++) {
+				TrainPartEntity part = new TrainPartEntity(ModEntities.PART, serverLevel);
+				part.setup(this, i);
+				serverLevel.addFreshEntity(part);
+				parts.add(part);
+			}
+		}
+	}
+
+	void refreshParts() {
+		for (TrainPartEntity part : parts) {
+			part.refresh(this);
+		}
+	}
+
+	@Override
+	public void remove(RemovalReason reason) {
+		super.remove(reason);
+		for (TrainPartEntity part : parts) {
+			part.discard();
+		}
+		parts.clear();
+	}
+
+	// ------------------------------------------------------------------
+	// Places assises et couchettes
+	// ------------------------------------------------------------------
+
+	private java.util.Map<Integer, Integer> seatsByEntityId() {
+		String encoded = this.entityData.get(DATA_SEATS);
+		if (!encoded.equals(decodedSeatsSource)) {
+			decodedSeats.clear();
+			if (!encoded.isEmpty()) {
+				for (String entry : encoded.split(";")) {
+					String[] kv = entry.split(":");
+					if (kv.length == 2) {
+						try {
+							decodedSeats.put(Integer.parseInt(kv[0]), Integer.parseInt(kv[1]));
+						} catch (NumberFormatException ignored) {
+						}
+					}
+				}
+			}
+			decodedSeatsSource = encoded;
+		}
+		return decodedSeats;
+	}
+
+	private void syncSeats() {
+		StringBuilder sb = new StringBuilder();
+		for (Entity passenger : this.getPassengers()) {
+			Integer seat = seatAssignments.get(passenger.getUUID());
+			if (seat != null) {
+				if (!sb.isEmpty()) {
+					sb.append(';');
+				}
+				sb.append(passenger.getId()).append(':').append(seat);
+			}
+		}
+		this.entityData.set(DATA_SEATS, sb.toString());
+	}
+
+	/** Index de la place occupée par ce passager, ou -1. */
+	public int seatOf(Entity passenger) {
+		if (this.level().isClientSide()) {
+			return seatsByEntityId().getOrDefault(passenger.getId(), -1);
+		}
+		return seatAssignments.getOrDefault(passenger.getUUID(), -1);
+	}
+
+	@Nullable
+	public CarLayout.Seat seatFor(Entity passenger) {
+		int index = seatOf(passenger);
+		List<CarLayout.Seat> seats = carType.layout().seats;
+		return index >= 0 && index < seats.size() ? seats.get(index) : null;
+	}
+
+	private boolean seatTaken(int index) {
+		return seatAssignments.containsValue(index);
+	}
+
+	private int firstFreeSeat(boolean allowBeds) {
+		List<CarLayout.Seat> seats = carType.layout().seats;
+		for (int pass = 0; pass < 2; pass++) {
+			for (int i = 0; i < seats.size(); i++) {
+				boolean bed = seats.get(i).isBed();
+				if (!seatTaken(i) && (pass == 0 ? seats.get(i).style() == CarLayout.SeatStyle.DRIVER || !bed && !carType.isLocomotive() : (allowBeds || !bed))) {
+					return i;
+				}
+			}
+		}
+		return -1;
+	}
+
+	/** Installe une entité à une place précise. */
+	public boolean sitAt(Entity entity, int seat) {
+		if (seat < 0 || seatTaken(seat)) {
+			return false;
+		}
+		if (entity.getVehicle() == this) {
+			seatAssignments.put(entity.getUUID(), seat);
+			syncSeats();
+			return true;
+		}
+		if (entity.isPassenger()) {
+			entity.stopRiding();
+		}
+		pendingSeat = seat;
+		boolean ok = entity.startRiding(this);
+		pendingSeat = -1;
+		return ok;
 	}
 
 	@Override
 	protected boolean canAddPassenger(Entity passenger) {
-		return this.getPassengers().size() < carType.seats.length;
+		return this.getPassengers().size() < carType.seatCount();
+	}
+
+	@Override
+	protected void addPassenger(Entity passenger) {
+		super.addPassenger(passenger);
+		if (!this.level().isClientSide()) {
+			int seat = pendingSeat >= 0 && !seatTaken(pendingSeat) ? pendingSeat : firstFreeSeat(true);
+			if (seat >= 0) {
+				seatAssignments.put(passenger.getUUID(), seat);
+			}
+			syncSeats();
+		}
+	}
+
+	@Override
+	protected void removePassenger(Entity passenger) {
+		super.removePassenger(passenger);
+		if (!this.level().isClientSide()) {
+			seatAssignments.remove(passenger.getUUID());
+			syncSeats();
+		}
 	}
 
 	@Override
 	protected Vec3 getPassengerAttachmentPoint(Entity passenger, EntityDimensions dimensions, float partialTick) {
-		int index = Math.max(0, this.getPassengers().indexOf(passenger));
-		if (carType.seats.length == 0) {
-			return new Vec3(0, 1.0, 0);
+		CarLayout.Seat seat = seatFor(passenger);
+		if (seat == null) {
+			List<CarLayout.Seat> seats = carType.layout().seats;
+			int index = Math.max(0, this.getPassengers().indexOf(passenger));
+			seat = seats.isEmpty() ? null : seats.get(index % seats.size());
 		}
-		Vec3 seat = carType.seats[index % carType.seats.length];
-		return seat.yRot(-this.getYRot() * ((float) Math.PI / 180.0F));
+		Vec3 local = seat == null ? new Vec3(0, 1.0, 0) : new Vec3(seat.x(), seat.y(), seat.z());
+		return local.yRot(-this.getYRot() * ((float) Math.PI / 180.0F));
+	}
+
+	// ------------------------------------------------------------------
+	// Portes
+	// ------------------------------------------------------------------
+
+	public boolean isDoorOpen(int index) {
+		return (this.entityData.get(DATA_DOORS) & (1 << index)) != 0;
+	}
+
+	public int getDoorBits() {
+		return this.entityData.get(DATA_DOORS);
+	}
+
+	public void toggleDoor(int index) {
+		int bits = this.entityData.get(DATA_DOORS) ^ (1 << index);
+		this.entityData.set(DATA_DOORS, bits);
+		CarLayout.Door door = carType.layout().doors.get(index);
+		Vec3 at = localToWorld(new Vec3(door.side() * CarLayout.HALF_WIDTH, 1.2, door.z()));
+		this.level().playSound(null, at.x, at.y, at.z, (bits & (1 << index)) != 0 ? SoundEvents.IRON_DOOR_OPEN : SoundEvents.IRON_DOOR_CLOSE,
+				SoundSource.BLOCKS, 0.8F, 1.25F);
+	}
+
+	// ------------------------------------------------------------------
+	// Interaction
+	// ------------------------------------------------------------------
+
+	private enum Target { NONE, SEAT, DOOR, STORAGE, CONTROL }
+
+	private record Hit(Target target, int index) {
+	}
+
+	/** Lance un rayon depuis les yeux du joueur dans le repère du véhicule pour trouver l'élément visé. */
+	private Hit raycast(Player player) {
+		Vec3 eye = toLocal(player.getEyePosition());
+		Vec3 look = player.getViewVector(1.0F).yRot(this.getYRot() * ((float) Math.PI / 180.0F));
+		CarLayout layout = carType.layout();
+		double best = 5.5;
+		Hit hit = new Hit(Target.NONE, -1);
+		for (int i = 0; i < layout.doors.size(); i++) {
+			double t = layout.doors.get(i).box().clip(eye.x, eye.y, eye.z, look.x, look.y, look.z);
+			if (t >= 0 && t < best) {
+				best = t;
+				hit = new Hit(Target.DOOR, i);
+			}
+		}
+		for (int i = 0; i < layout.seats.size(); i++) {
+			double t = layout.seats.get(i).box().clip(eye.x, eye.y, eye.z, look.x, look.y, look.z);
+			if (t >= 0 && t < best) {
+				best = t;
+				hit = new Hit(Target.SEAT, i);
+			}
+		}
+		for (int i = 0; i < layout.storages.size(); i++) {
+			double t = layout.storages.get(i).clip(eye.x, eye.y, eye.z, look.x, look.y, look.z);
+			if (t >= 0 && t < best) {
+				best = t;
+				hit = new Hit(Target.STORAGE, i);
+			}
+		}
+		if (layout.control != null) {
+			double t = layout.control.clip(eye.x, eye.y, eye.z, look.x, look.y, look.z);
+			if (t >= 0 && t < best) {
+				hit = new Hit(Target.CONTROL, 0);
+			}
+		}
+		return hit;
 	}
 
 	@Override
@@ -273,7 +557,7 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 			}
 			return InteractionResult.SUCCESS;
 		}
-		if (carType.power == CarType.Power.STEAM && isSteamFuel(held)) {
+		if (carType.power.burnsFuel() && fuelValue(carType.power, held) > 0) {
 			if (!this.level().isClientSide()) {
 				ItemStack rest = inventory.addItem(held.copy());
 				if (rest.getCount() != held.getCount()) {
@@ -285,22 +569,94 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 			}
 			return InteractionResult.SUCCESS;
 		}
-		if (player.isSecondaryUseActive() || carType.seats.length == 0) {
-			if (carType.isLocomotive() || carType.inventorySize > 0) {
-				if (!this.level().isClientSide()) {
-					openCustomInventoryScreen(player);
+		if (this.level().isClientSide()) {
+			return InteractionResult.SUCCESS;
+		}
+		if (carType.layout == CarType.Layout.LIVESTOCK && boardLeashedAnimals(player)) {
+			return InteractionResult.SUCCESS;
+		}
+		if (player.isSecondaryUseActive()) {
+			openCustomInventoryScreen(player);
+			return InteractionResult.SUCCESS;
+		}
+		Hit hit = raycast(player);
+		switch (hit.target()) {
+			case DOOR -> {
+				toggleDoor(hit.index());
+				return InteractionResult.SUCCESS;
+			}
+			case STORAGE -> {
+				openStorage(player);
+				return InteractionResult.SUCCESS;
+			}
+			case CONTROL -> {
+				openCustomInventoryScreen(player);
+				return InteractionResult.SUCCESS;
+			}
+			case SEAT -> {
+				CarLayout.Seat seat = carType.layout().seats.get(hit.index());
+				if (seat.style() == CarLayout.SeatStyle.BENCH) {
+					break;
+				}
+				if (seatTaken(hit.index())) {
+					player.displayClientMessage(Component.translatable("message.railexpress.seat_taken"), true);
+					return InteractionResult.SUCCESS;
+				}
+				if (sitAt(player, hit.index()) && seat.isBed()) {
+					player.displayClientMessage(Component.translatable(TrainSleep.isNight(this.level())
+							? "message.railexpress.sleeping" : "message.railexpress.resting"), true);
 				}
 				return InteractionResult.SUCCESS;
 			}
-			return InteractionResult.PASS;
-		}
-		if (this.canAddPassenger(player) && !player.isPassenger()) {
-			if (!this.level().isClientSide()) {
-				player.startRiding(this);
+			default -> {
 			}
+		}
+		// Clic sur la coque : s'asseoir à une place libre, sinon ouvrir le chargement
+		int free = firstFreeSeat(false);
+		if (free >= 0 && !player.isPassenger() && carType.layout().seats.get(free).style() != CarLayout.SeatStyle.BENCH) {
+			sitAt(player, free);
+			return InteractionResult.SUCCESS;
+		}
+		if (carType.inventorySize > 0) {
+			openCustomInventoryScreen(player);
 			return InteractionResult.SUCCESS;
 		}
 		return InteractionResult.PASS;
+	}
+
+	/** Fait monter dans le wagon à bestiaux les animaux tenus en laisse par le joueur. */
+	private boolean boardLeashedAnimals(Player player) {
+		boolean any = false;
+		for (Mob mob : this.level().getEntitiesOfClass(Mob.class, player.getBoundingBox().inflate(10.0), m -> m.getLeashHolder() == player)) {
+			int seat = firstFreeSeat(false);
+			if (seat < 0) {
+				break;
+			}
+			mob.dropLeash();
+			if (sitAt(mob, seat)) {
+				any = true;
+			}
+		}
+		if (any) {
+			player.displayClientMessage(Component.translatable("message.railexpress.animals_boarded"), true);
+		}
+		return any;
+	}
+
+	private void openStorage(Player player) {
+		if (carType.isLocomotive()) {
+			openCustomInventoryScreen(player);
+			return;
+		}
+		Component title = Component.translatable("entity.railexpress." + carType.id);
+		int size = inventory.getContainerSize();
+		if (size >= 54) {
+			player.openMenu(new SimpleMenuProvider((id, playerInventory, p) -> ChestMenu.sixRows(id, playerInventory, this.inventory), title));
+		} else if (size >= 27) {
+			player.openMenu(new SimpleMenuProvider((id, playerInventory, p) -> ChestMenu.threeRows(id, playerInventory, this.inventory), title));
+		} else if (size >= 9) {
+			player.openMenu(new SimpleMenuProvider((id, playerInventory, p) -> new ChestMenu(MenuType.GENERIC_9x1, id, playerInventory, this.inventory, 1), title));
+		}
 	}
 
 	@Override
@@ -308,25 +664,33 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 		if (this.level().isClientSide()) {
 			return;
 		}
-		Component title = Component.translatable("entity.railexpress." + carType.id);
 		if (carType.isLocomotive()) {
+			Component title = Component.translatable("entity.railexpress." + carType.id);
 			player.openMenu(new SimpleMenuProvider((id, playerInventory, p) -> new LocomotiveMenu(id, playerInventory, this.inventory, this.menuData, this), title));
-		} else if (carType.inventorySize == 27) {
-			player.openMenu(new SimpleMenuProvider((id, playerInventory, p) -> ChestMenu.threeRows(id, playerInventory, this.inventory), title));
-		} else if (carType.inventorySize == 9) {
-			player.openMenu(new SimpleMenuProvider((id, playerInventory, p) -> new ChestMenu(MenuType.GENERIC_9x1, id, playerInventory, this.inventory, 1), title));
+		} else {
+			openStorage(player);
 		}
 	}
 
-	public static boolean isSteamFuel(ItemStack stack) {
-		return stack.is(Items.COAL) || stack.is(Items.CHARCOAL) || stack.is(Items.COAL_BLOCK);
-	}
-
-	private static int fuelValue(ItemStack stack) {
+	/** Valeur énergétique d'un combustible pour ce type de traction, en ticks. */
+	public static int fuelValue(CarType.Power power, ItemStack stack) {
+		if (power == CarType.Power.DIESEL && stack.is(ModItems.FUEL_CANISTER)) {
+			return 12000;
+		}
 		if (stack.is(Items.COAL_BLOCK)) {
 			return 24000;
 		}
-		return isSteamFuel(stack) ? 2400 : 0;
+		if (stack.is(Items.COAL) || stack.is(Items.CHARCOAL)) {
+			return power == CarType.Power.DIESEL ? 1200 : 2400;
+		}
+		if (power == CarType.Power.DIESEL && stack.is(Items.BLAZE_ROD)) {
+			return 3000;
+		}
+		return 0;
+	}
+
+	public static boolean isFuel(ItemStack stack) {
+		return fuelValue(CarType.Power.STEAM, stack) > 0 || fuelValue(CarType.Power.DIESEL, stack) > 0;
 	}
 
 	// ------------------------------------------------------------------
@@ -434,7 +798,7 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 		for (TrainCarEntity car : buildConsist()) {
 			if (car.carType == CarType.TENDER) {
 				for (ItemStack stack : car.inventory.getItems()) {
-					if (isSteamFuel(stack)) {
+					if (fuelValue(CarType.Power.STEAM, stack) > 0) {
 						total += stack.getCount();
 					}
 				}
@@ -608,6 +972,19 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 		if (hornCooldown > 0) {
 			hornCooldown--;
 		}
+		manageParts();
+		refreshParts();
+		if (getSpeed() > 0.08F && this.entityData.get(DATA_DOORS) != 0) {
+			// Fermeture automatique des portes au départ
+			for (int i = 0; i < carType.layout().doors.size(); i++) {
+				if (isDoorOpen(i)) {
+					toggleDoor(i);
+				}
+			}
+		}
+		if (this.level() instanceof ServerLevel serverLevel) {
+			TrainSleep.tick(serverLevel);
+		}
 		handleDriverInput();
 
 		List<TrainCarEntity> cars = buildConsist();
@@ -633,8 +1010,14 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 			inputCooldown--;
 			return;
 		}
-		Entity first = this.getFirstPassenger();
-		if (!(first instanceof ServerPlayer driver)) {
+		ServerPlayer driver = null;
+		for (Entity passenger : this.getPassengers()) {
+			CarLayout.Seat seat = seatFor(passenger);
+			if (passenger instanceof ServerPlayer player && seat != null && seat.style() == CarLayout.SeatStyle.DRIVER) {
+				driver = player;
+			}
+		}
+		if (driver == null) {
 			return;
 		}
 		Input input = driver.getLastClientInput();
@@ -663,7 +1046,7 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 			}
 			return false;
 		}
-		if (carType.power == CarType.Power.STEAM) {
+		if (carType.power.burnsFuel()) {
 			if (burnTime <= 0) {
 				refuel(cars);
 			}
@@ -689,7 +1072,7 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 	private boolean takeFuelFrom(SimpleContainer container) {
 		for (int i = 0; i < container.getContainerSize(); i++) {
 			ItemStack stack = container.getItem(i);
-			int value = fuelValue(stack);
+			int value = fuelValue(carType.power, stack);
 			if (value > 0) {
 				stack.shrink(1);
 				container.setChanged();
@@ -801,6 +1184,24 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 			v = Math.signum(v) * Math.max(limit, Math.abs(v) - 0.06);
 		}
 
+		// Joueurs debout à l'intérieur : ils seront transportés avec leur véhicule
+		List<Object[]> riders = new ArrayList<>();
+		if (Math.abs(v) > 1.0E-4) {
+			for (TrainCarEntity car : cars) {
+				CarLayout layout = car.carType.layout();
+				if (!layout.enterable) {
+					continue;
+				}
+				for (Player player : level.getEntitiesOfClass(Player.class, car.getBoundingBoxForCulling(), p -> !p.isPassenger() && !p.isSpectator())) {
+					Vec3 local = car.toLocal(player.position());
+					if (Math.abs(local.x) < CarLayout.HALF_WIDTH && local.z > layout.interiorZ0 - 0.3 && local.z < layout.interiorZ1 + 0.3
+							&& local.y > CarLayout.FLOOR - 0.35 && local.y < CarLayout.FLOOR + 0.9) {
+						riders.add(new Object[]{player, car, local});
+					}
+				}
+			}
+		}
+
 		// Déplacement : le véhicule de tête avance, les autres suivent
 		if (Math.abs(v) > 1.0E-4) {
 			TrainCarEntity lead = v > 0 ? cars.get(0) : cars.get(n - 1);
@@ -834,6 +1235,16 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 			car.entityData.set(DATA_LIVE, trainLive);
 			car.entityData.set(DATA_STATION, this.stationTimer);
 			car.entityData.set(DATA_FUEL, car.computeFuelLevel());
+			car.refreshParts();
+		}
+		for (Object[] rider : riders) {
+			Player player = (Player) rider[0];
+			TrainCarEntity car = (TrainCarEntity) rider[1];
+			Vec3 target = car.localToWorld((Vec3) rider[2]);
+			Vec3 delta = target.subtract(player.position());
+			if (delta.lengthSqr() > 1.0E-6 && delta.lengthSqr() < 36.0) {
+				player.teleportRelative(delta.x, delta.y, delta.z);
+			}
 		}
 	}
 
@@ -852,7 +1263,7 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 		if (carType.power == CarType.Power.ELECTRIC) {
 			return energy * 1000 / MAX_ENERGY;
 		}
-		if (carType.power == CarType.Power.STEAM) {
+		if (carType.power.burnsFuel()) {
 			return burnTime <= 0 ? 0 : Math.max(1, burnTime * 1000 / Math.max(1, burnTimeMax));
 		}
 		return 0;
@@ -930,27 +1341,36 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 		wheelRotO = wheelRot;
 		wheelRot += (float) (moved / 0.45);
 
+		// Animation des portes
+		int doors = Math.min(doorOpen.length, carType.layout().doors.size());
+		for (int i = 0; i < doors; i++) {
+			doorOpenO[i] = doorOpen[i];
+			float target = isDoorOpen(i) ? 1.0F : 0.0F;
+			doorOpen[i] += Math.signum(target - doorOpen[i]) * Math.min(0.125F, Math.abs(target - doorOpen[i]));
+		}
+
 		float speed = getSpeed();
 		if (carType.power == CarType.Power.STEAM && getFuelLevel() > 0) {
-			Vec3 chimney = localToWorld(new Vec3(0, 3.0, 3.6));
+			Vec3 chimney = localToWorld(carType == CarType.ORIENT_EXPRESS_LOCOMOTIVE ? new Vec3(0, 3.15, 4.5) : new Vec3(0, 3.0, 3.6));
 			int puffs = getThrottle() > 0 ? 2 : (this.random.nextInt(4) == 0 ? 1 : 0);
 			for (int i = 0; i < puffs; i++) {
 				this.level().addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, chimney.x, chimney.y, chimney.z,
 						(this.random.nextDouble() - 0.5) * 0.02, 0.06 + speed * 0.02, (this.random.nextDouble() - 0.5) * 0.02);
 			}
 			if (getThrottle() > 0 && this.random.nextInt(3) == 0) {
-				Vec3 steam = localToWorld(new Vec3(this.random.nextBoolean() ? 0.85 : -0.85, 0.7, 2.9));
+				double z = carType == CarType.ORIENT_EXPRESS_LOCOMOTIVE ? 3.7 : 2.9;
+				Vec3 steam = localToWorld(new Vec3(this.random.nextBoolean() ? 0.85 : -0.85, 0.7, z));
 				this.level().addParticle(ParticleTypes.CLOUD, steam.x, steam.y, steam.z, 0, 0.02, 0);
 			}
 		}
+		if (carType.power == CarType.Power.DIESEL && getFuelLevel() > 0 && this.random.nextInt(getThrottle() > 0 ? 1 : 5) == 0) {
+			Vec3 exhaust = localToWorld(new Vec3((this.random.nextDouble() - 0.5) * 0.2, 3.05, 0.6));
+			this.level().addParticle(getThrottle() > 2 ? ParticleTypes.LARGE_SMOKE : ParticleTypes.SMOKE, exhaust.x, exhaust.y, exhaust.z,
+					0, 0.05 + getThrottle() * 0.01, 0);
+		}
 		if (carType.power == CarType.Power.ELECTRIC && isLive() && speed > 0.2F && this.random.nextInt(12) == 0) {
-			double z = carType == CarType.TGV_POWER_CAR ? -2.4 : -3.0;
-			Vec3 pantograph = localToWorld(new Vec3((this.random.nextDouble() - 0.5) * 1.2, 3.95, z));
+			Vec3 pantograph = localToWorld(new Vec3((this.random.nextDouble() - 0.5) * 1.2, 3.95, carType.pantographZ()));
 			this.level().addParticle(ParticleTypes.ELECTRIC_SPARK, pantograph.x, pantograph.y, pantograph.z, 0, 0.05, 0);
 		}
-	}
-
-	public Vec3 localToWorld(Vec3 local) {
-		return this.position().add(local.yRot(-this.getYRot() * ((float) Math.PI / 180.0F)));
 	}
 }

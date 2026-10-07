@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "XXX",
+    "SSS",
+    "W W"
+  ],
+  "key": {
+    "W": "railexpress:wheel_set",
+    "X": "minecraft:barrel",
+    "S": "railexpress:steel_ingot"
+  },
+  "result": {
+    "id": "railexpress:container_wagon",
+    "count": 1
+  }
+}

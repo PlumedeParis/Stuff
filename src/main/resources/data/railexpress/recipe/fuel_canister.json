@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " S ",
+    "SBS",
+    "SCS"
+  ],
+  "key": {
+    "S": "railexpress:steel_ingot",
+    "B": "minecraft:bucket",
+    "C": "#minecraft:coals"
+  },
+  "result": {
+    "id": "railexpress:fuel_canister",
+    "count": 4
+  }
+}

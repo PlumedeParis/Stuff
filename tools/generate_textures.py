@@ -229,4 +229,31 @@ item(seat, "train_seat")
 item(coupler, "coupler")
 
 Image.new("RGBA", (16, 16), (255, 255, 255, 255)).save(os.path.join(ENTITY, "white.png"))
+
+# ---------------------------------------------------------------- textures des rails 3D
+import random
+rnd = random.Random(42)
+
+
+def noise_tex(base, var, name, seed_pattern=None):
+    im = Image.new("RGBA", (16, 16))
+    px = im.load()
+    for y in range(16):
+        for x in range(16):
+            f = 1 + rnd.uniform(-var, var)
+            if seed_pattern:
+                f *= seed_pattern(x, y)
+            px[x, y] = shade(base, f)
+    save(im, BLOCK, name)
+
+
+noise_tex(rgba("7d776e"), 0.22, "ballast", lambda x, y: 0.8 if (x * 7 + y * 3) % 5 == 0 else 1.0)
+noise_tex(rgba("6b4a2e"), 0.08, "sleeper_wood", lambda x, y: 0.85 if y % 4 == 0 else 1.0)
+noise_tex(rgba("b9b6ad"), 0.06, "sleeper_concrete")
+noise_tex(rgba("5d646c"), 0.05, "rail_steel")
+noise_tex(rgba("c9d0d6"), 0.05, "rail_head")
+noise_tex(rgba("8a5a32"), 0.06, "copper_off")
+noise_tex(rgba("ffc84a"), 0.08, "copper_on")
+noise_tex(rgba("e5484d"), 0.04, "marker_red")
+noise_tex(rgba("3dd68c"), 0.04, "marker_green")
 print("textures générées")

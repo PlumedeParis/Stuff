@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "L L",
+    "LLL",
+    "W W"
+  ],
+  "key": {
+    "W": "railexpress:wheel_set",
+    "L": "#minecraft:logs"
+  },
+  "result": {
+    "id": "railexpress:log_wagon",
+    "count": 1
+  }
+}

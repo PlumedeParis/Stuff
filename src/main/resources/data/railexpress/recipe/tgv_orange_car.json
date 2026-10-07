@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "OGO",
+    "TTT",
+    "W W"
+  ],
+  "key": {
+    "W": "railexpress:wheel_set",
+    "O": "minecraft:orange_concrete",
+    "G": "minecraft:glass_pane",
+    "T": "railexpress:train_seat"
+  },
+  "result": {
+    "id": "railexpress:tgv_orange_car",
+    "count": 1
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PGP",
+    "TLT",
+    "W W"
+  ],
+  "key": {
+    "W": "railexpress:wheel_set",
+    "P": "#minecraft:planks",
+    "G": "minecraft:glass_pane",
+    "T": "railexpress:train_seat",
+    "L": "minecraft:flower_pot"
+  },
+  "result": {
+    "id": "railexpress:lounge_car",
+    "count": 1
+  }
+}

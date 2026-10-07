@@ -37,23 +37,125 @@ def generated_item(name, texture):
 
 
 # ------------------------------------------------------------------ voies
+import math
+
+
+def el(fr, to, tex, rot=None):
+    e = {"from": [round(v, 4) for v in fr], "to": [round(v, 4) for v in to],
+         "faces": {f: {"texture": tex} for f in ("north", "south", "east", "west", "up", "down")}}
+    if rot:
+        e["rotation"] = rot
+    return e
+
+
+RAIL_X = (1.0, 15.0)  # axes des deux files de rails (écartement 14 px)
+
+
+def straight_parts(t, y=0.0, extra=None):
+    """Éléments d'une voie droite orientée nord-sud, plan de roulement à l'altitude y."""
+    parts = [el([-4, y, 0], [20, y + 1, 16], "#ballast")]
+    for zc in (2.67, 8.0, 13.33):
+        parts.append(el([-3, y + 1, zc - 1.5], [19, y + 2.5, zc + 1.5], "#sleeper"))
+    for xc in RAIL_X:
+        parts.append(el([xc - 1.5, y + 2.5, 0], [xc + 1.5, y + 3, 16], "#rail"))
+        parts.append(el([xc - 0.5, y + 3, 0], [xc + 0.5, y + 4.5, 16], "#rail"))
+        parts.append(el([xc - 1, y + 4.5, 0], [xc + 1, y + 5.5, 16], "#head"))
+    if extra:
+        parts += extra(y)
+    return parts
+
+
+def rotated(e, axis, angle, origin):
+    e["rotation"] = {"origin": origin, "axis": axis, "angle": angle, "rescale": True}
+    return e
+
+
+def oriented(cx, cz, length, width, y0, y1, beta, tex):
+    """Élément centré en (cx, cz), long de `length` selon sa direction, tourné de beta degrés autour de Y."""
+    snap = round(beta / 22.5) * 22.5
+    if abs(snap) <= 45:
+        fr, to, ang = [cx - width / 2, y0, cz - length / 2], [cx + width / 2, y1, cz + length / 2], snap
+    else:
+        ang = snap - 90 if snap > 0 else snap + 90
+        fr, to = [cx - length / 2, y0, cz - width / 2], [cx + length / 2, y1, cz + width / 2]
+    e = el(fr, to, tex)
+    if ang:
+        e["rotation"] = {"origin": [cx, y0, cz], "axis": "y", "angle": ang}
+    return e
+
+
+def corner_parts(extra_centre=None):
+    """Courbe reliant le bord sud (8,16) et le bord est (16,8) ; centre de courbure (16,16)."""
+    parts = []
+    steps = [(180.0, 0.5), (202.5, 1), (225.0, 1), (247.5, 1), (270.0, 0.5)]
+    dth = math.radians(22.5)
+    for theta, frac in steps:
+        th = math.radians(theta)
+        tx, tz = -math.sin(th), math.cos(th)
+        beta = math.degrees(math.atan2(tx, tz))
+        while beta > 90:
+            beta -= 180
+        while beta <= -90:
+            beta += 180
+        shift = 0 if frac == 1 else (0.25 if theta == 180 else -0.25)
+        thc = th + shift * dth
+        def at(r):
+            return 16 + r * math.cos(thc), 16 + r * math.sin(thc)
+        cx, cz = at(8)
+        parts.append(oriented(cx, cz, 8 * dth * frac * 1.35, 24, 0, 1, beta, "#ballast"))
+        for r, tex, y0, y1, w in ((1.0, "#rail", 2.5, 3, 3), (15.0, "#rail", 2.5, 3, 3), (1.0, "#rail", 3, 4.5, 1),
+                                  (15.0, "#rail", 3, 4.5, 1), (1.0, "#head", 4.5, 5.5, 2), (15.0, "#head", 4.5, 5.5, 2)):
+            px, pz = at(r)
+            parts.append(oriented(px, pz, max(0.6, r * dth * frac * 1.08), w, y0, y1, beta, tex))
+        if extra_centre:
+            px, pz = at(8)
+            parts.append(oriented(px, pz, 8 * dth * frac * 1.1, 1, 2.5, 3, beta, extra_centre))
+    for theta in (191.25, 225.0, 258.75):
+        th = math.radians(theta)
+        cx, cz = 16 + 8 * math.cos(th), 16 + 8 * math.sin(th)
+        tx, tz = -math.sin(th), math.cos(th)
+        beta = math.degrees(math.atan2(tx, tz)) + 90
+        while beta > 90:
+            beta -= 180
+        while beta <= -90:
+            beta += 180
+        parts.append(oriented(cx, cz, 21, 3, 1, 2.5, beta, "#sleeper"))
+    return parts
+
+
+def raised_parts(extra=None):
+    """Voie en pente montant vers le nord : la voie droite est tournée de 45° autour de X."""
+    flat = straight_parts(None, 0.0, extra)
+    out = []
+    for e in flat:
+        # Épaisseurs divisées par deux : avec la remise à l'échelle (x1,414) de la rotation à 45°,
+        # le plan de roulement reste à la même hauteur verticale que sur la voie plate.
+        e["from"][1] = 8.0 + e["from"][1] * 0.5
+        e["to"][1] = 8.0 + e["to"][1] * 0.5
+        out.append(rotated(e, "x", 45, [8, 8, 8]))
+    return out
+
+
+def rail_models(name, textures, centre=None, curves=True):
+    tex = dict(textures)
+    tex["particle"] = tex["sleeper"]
+    extra = None
+    if centre:
+        tex["centre"] = centre
+        extra = lambda y: [el([7.5, y + 2.5, 0], [8.5, y + 3, 16], "#centre")]
+    block_model(f"{name}_flat", {"textures": tex, "elements": straight_parts(None, 0.0, extra)})
+    block_model(f"{name}_raised", {"textures": tex, "elements": raised_parts(extra)})
+    if curves:
+        block_model(f"{name}_corner", {"textures": tex, "elements": corner_parts("#centre" if centre else None)})
+
+
 RAIL_SHAPES = {
     "north_south": ("flat", 0), "east_west": ("flat", 90),
-    "ascending_north": ("raised_ne", 0), "ascending_east": ("raised_ne", 90),
-    "ascending_south": ("raised_sw", 0), "ascending_west": ("raised_sw", 90),
+    "ascending_north": ("raised", 0), "ascending_east": ("raised", 90),
+    "ascending_south": ("raised", 180), "ascending_west": ("raised", 270),
     "south_east": ("corner", 0), "south_west": ("corner", 90),
     "north_west": ("corner", 180), "north_east": ("corner", 270),
 }
-TEMPLATES = {"flat": "minecraft:block/rail_flat", "corner": "minecraft:block/rail_curved",
-             "raised_ne": "minecraft:block/template_rail_raised_ne", "raised_sw": "minecraft:block/template_rail_raised_sw"}
-
-
-def rail_models(name, straight_tex, corner_tex):
-    for kind, parent in TEMPLATES.items():
-        tex = corner_tex if kind == "corner" else straight_tex
-        if tex is None:
-            continue
-        block_model(f"{name}_{kind}", {"parent": parent, "textures": {"rail": f"{NS}:block/{tex}"}})
 
 
 def rail_variants(name, curves=True, suffix=""):
@@ -68,13 +170,16 @@ def rail_variants(name, curves=True, suffix=""):
     return variants
 
 
-for name, curves in (("track", True), ("high_speed_track", True)):
-    rail_models(name, name, name + "_corner")
+WOOD = {"ballast": f"{NS}:block/ballast", "sleeper": f"{NS}:block/sleeper_wood", "rail": f"{NS}:block/rail_steel", "head": f"{NS}:block/rail_head"}
+CONCRETE = {"ballast": f"{NS}:block/ballast", "sleeper": f"{NS}:block/sleeper_concrete", "rail": f"{NS}:block/rail_steel", "head": f"{NS}:block/rail_head"}
+
+for name, tex in (("track", WOOD), ("high_speed_track", CONCRETE)):
+    rail_models(name, tex)
     blockstate(name, {"variants": {f"shape={k}": v for k, v in rail_variants(name).items()}})
     generated_item(name, f"{NS}:block/{name}")
 
-rail_models("electrified_track", "electrified_track", "electrified_track_corner")
-rail_models("electrified_track_on", "electrified_track_on", "electrified_track_corner_on")
+rail_models("electrified_track", CONCRETE, f"{NS}:block/copper_off")
+rail_models("electrified_track_on", CONCRETE, f"{NS}:block/copper_on")
 variants = {}
 for powered, suffix in (("false", ""), ("true", "_on")):
     for shape, v in rail_variants("electrified_track", True, suffix).items():
@@ -82,8 +187,8 @@ for powered, suffix in (("false", ""), ("true", "_on")):
 blockstate("electrified_track", {"variants": variants})
 generated_item("electrified_track", f"{NS}:block/electrified_track")
 
-rail_models("station_track", "station_track", None)
-rail_models("station_track_on", "station_track_on", None)
+rail_models("station_track", CONCRETE, f"{NS}:block/marker_red", curves=False)
+rail_models("station_track_on", CONCRETE, f"{NS}:block/marker_green", curves=False)
 variants = {}
 for powered, suffix in (("false", ""), ("true", "_on")):
     for shape, v in rail_variants("station_track", False, suffix).items():
@@ -155,9 +260,14 @@ facing_state("buffer_stop")
 block_item("buffer_stop")
 
 # ------------------------------------------------------------------ objets
-for name in ("steel_ingot", "wheel_set", "boiler", "electric_motor", "pantograph", "train_seat", "coupler",
-             "steam_locomotive", "tender", "passenger_coach", "freight_wagon",
-             "tgv_power_car", "tgv_car", "shinkansen_head", "shinkansen_car"):
+VEHICLES = ["steam_locomotive", "orient_express_locomotive", "diesel_locomotive", "electric_locomotive",
+            "tgv_power_car", "tgv_orange_power_car", "eurostar_power_car", "ice_power_car", "shinkansen_head",
+            "passenger_coach", "sleeper_car", "dining_car", "lounge_car", "luxury_car", "observation_car", "baggage_car",
+            "post_car", "orient_express_sleeper", "orient_express_dining", "orient_express_salon", "orient_express_baggage",
+            "tgv_car", "tgv_bar_car", "tgv_duplex_car", "tgv_orange_car", "eurostar_car", "ice_car", "shinkansen_car",
+            "shinkansen_green_car", "tender", "freight_wagon", "tank_wagon", "hopper_wagon", "container_wagon", "log_wagon",
+            "livestock_wagon", "caboose"]
+for name in ["steel_ingot", "wheel_set", "boiler", "electric_motor", "pantograph", "train_seat", "coupler", "fuel_canister"] + VEHICLES:
     generated_item(name, f"{NS}:item/{name}")
 
 # ------------------------------------------------------------------ butins & tags
@@ -212,8 +322,46 @@ shaped("steam_locomotive", ["  C", "BBS", "WWW"], {"C": "minecraft:iron_bars", "
 shaped("tender", ["SCS", "SCS", "W W"], {"S": S, "C": "minecraft:chest", "W": W}, "tender")
 shaped("passenger_coach", ["PGP", "TTT", "W W"], {"P": "#minecraft:planks", "G": "minecraft:glass_pane", "T": f"{NS}:train_seat", "W": W}, "passenger_coach")
 shaped("freight_wagon", ["PPP", "PCP", "W W"], {"P": "#minecraft:planks", "C": "minecraft:chest", "W": W}, "freight_wagon")
-shaped("tgv_power_car", ["GPB", "MSM", "W W"], {"G": "minecraft:glass_pane", "P": f"{NS}:pantograph", "B": "minecraft:blue_concrete", "M": f"{NS}:electric_motor", "S": S, "W": W}, "tgv_power_car")
-shaped("tgv_car", ["BGB", "TTT", "W W"], {"B": "minecraft:blue_concrete", "G": "minecraft:glass_pane", "T": f"{NS}:train_seat", "W": W}, "tgv_car")
-shaped("shinkansen_head", ["GPC", "MSM", "W W"], {"G": "minecraft:glass_pane", "P": f"{NS}:pantograph", "C": "minecraft:white_concrete", "M": f"{NS}:electric_motor", "S": S, "W": W}, "shinkansen_head")
-shaped("shinkansen_car", ["CGC", "TTT", "W W"], {"C": "minecraft:white_concrete", "G": "minecraft:glass_pane", "T": f"{NS}:train_seat", "W": W}, "shinkansen_car")
+P, G, T, M, PA = "#minecraft:planks", "minecraft:glass_pane", f"{NS}:train_seat", f"{NS}:electric_motor", f"{NS}:pantograph"
+WC, BC, OC, YC, RC = "minecraft:white_concrete", "minecraft:blue_concrete", "minecraft:orange_concrete", "minecraft:yellow_concrete", "minecraft:red_concrete"
+shaped("fuel_canister", [" S ", "SBS", "SCS"], {"S": S, "B": "minecraft:bucket", "C": "#minecraft:coals"}, "fuel_canister", 4)
+# Locomotives
+for name, colour in (("tgv_power_car", BC), ("tgv_orange_power_car", OC), ("eurostar_power_car", YC), ("ice_power_car", RC), ("shinkansen_head", WC)):
+    shaped(name, ["GPC", "MSM", "W W"], {"G": G, "P": PA, "C": colour, "M": M, "S": S, "W": W}, name)
+shaped("electric_locomotive", ["CPC", "MSM", "W W"], {"C": RC, "P": PA, "M": M, "S": S, "W": W}, "electric_locomotive")
+shaped("orient_express_locomotive", ["OCO", "BBS", "WWW"], {"O": "minecraft:gold_ingot", "C": "minecraft:iron_bars", "B": f"{NS}:boiler", "S": S, "W": W}, "orient_express_locomotive")
+shaped("diesel_locomotive", ["YGY", "PSP", "W W"], {"Y": YC, "G": G, "P": "minecraft:piston", "S": S, "W": W}, "diesel_locomotive")
+# Voitures voyageurs
+def coach(name, top, mid, extra=None):
+    key = {"W": W}
+    for ch, item in (extra or {}).items():
+        key[ch] = item
+    shaped(name, [top, mid, "W W"], key, name)
+coach("passenger_coach", "PGP", "TTT", {"P": P, "G": G, "T": T})
+coach("sleeper_car", "PGP", "BBB", {"P": P, "G": G, "B": "#minecraft:beds"})
+coach("dining_car", "PGP", "TKT", {"P": P, "G": G, "T": T, "K": "minecraft:smoker"})
+coach("lounge_car", "PGP", "TLT", {"P": P, "G": G, "T": T, "L": "minecraft:flower_pot"})
+coach("luxury_car", "PGP", "TOT", {"P": P, "G": G, "T": T, "O": "minecraft:gold_ingot"})
+coach("observation_car", "GGG", "TTT", {"G": "minecraft:glass", "T": T})
+coach("baggage_car", "PPP", "CXC", {"P": P, "C": "minecraft:chest", "X": "minecraft:barrel"})
+coach("post_car", "YPY", "CQC", {"Y": "minecraft:yellow_dye", "P": P, "C": "minecraft:chest", "Q": "minecraft:paper"})
+coach("orient_express_sleeper", "LGL", "BOB", {"L": "minecraft:blue_wool", "G": G, "B": "#minecraft:beds", "O": "minecraft:gold_ingot"})
+coach("orient_express_dining", "LGL", "TKO", {"L": "minecraft:blue_wool", "G": G, "T": T, "K": "minecraft:smoker", "O": "minecraft:gold_ingot"})
+coach("orient_express_salon", "LGL", "TNT", {"L": "minecraft:blue_wool", "G": G, "T": T, "N": "minecraft:note_block"})
+coach("orient_express_baggage", "LLL", "CXC", {"L": "minecraft:blue_wool", "C": "minecraft:chest", "X": "minecraft:barrel"})
+coach("tgv_car", "BGB", "TTT", {"B": BC, "G": G, "T": T})
+coach("tgv_bar_car", "BGB", "TXT", {"B": BC, "G": G, "T": T, "X": "minecraft:glass_bottle"})
+shaped("tgv_duplex_car", ["BGB", "TTT", "WBW"], {"B": BC, "G": G, "T": T, "W": W}, "tgv_duplex_car")
+coach("tgv_orange_car", "OGO", "TTT", {"O": OC, "G": G, "T": T})
+coach("eurostar_car", "CGY", "TTT", {"C": WC, "G": G, "Y": YC, "T": T})
+coach("ice_car", "CGR", "TTT", {"C": WC, "G": G, "R": RC, "T": T})
+coach("shinkansen_car", "CGC", "TTT", {"C": WC, "G": G, "T": T})
+coach("shinkansen_green_car", "CGE", "TTT", {"C": WC, "G": G, "E": "minecraft:green_dye", "T": T})
+# Marchandises
+coach("tank_wagon", "SBS", "SBS", {"S": S, "B": "minecraft:bucket"})
+coach("hopper_wagon", "S S", "SHS", {"S": S, "H": "minecraft:hopper"})
+coach("container_wagon", "XXX", "SSS", {"X": "minecraft:barrel", "S": S})
+coach("log_wagon", "L L", "LLL", {"L": "#minecraft:logs"})
+coach("livestock_wagon", "FPF", "PHP", {"F": "#minecraft:wooden_fences", "P": P, "H": "minecraft:hay_block"})
+coach("caboose", "RGR", "PFP", {"R": RC, "G": G, "P": P, "F": "minecraft:furnace"})
 print("données générées")

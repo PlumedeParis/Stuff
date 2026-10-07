@@ -2,14 +2,14 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "GPB",
+    "GPC",
     "MSM",
     "W W"
   ],
   "key": {
     "G": "minecraft:glass_pane",
     "P": "railexpress:pantograph",
-    "B": "minecraft:blue_concrete",
+    "C": "minecraft:blue_concrete",
     "M": "railexpress:electric_motor",
     "S": "railexpress:steel_ingot",
     "W": "railexpress:wheel_set"

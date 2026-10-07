@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "YGY",
+    "PSP",
+    "W W"
+  ],
+  "key": {
+    "Y": "minecraft:yellow_concrete",
+    "G": "minecraft:glass_pane",
+    "P": "minecraft:piston",
+    "S": "railexpress:steel_ingot",
+    "W": "railexpress:wheel_set"
+  },
+  "result": {
+    "id": "railexpress:diesel_locomotive",
+    "count": 1
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BGB",
+    "TXT",
+    "W W"
+  ],
+  "key": {
+    "W": "railexpress:wheel_set",
+    "B": "minecraft:blue_concrete",
+    "G": "minecraft:glass_pane",
+    "T": "railexpress:train_seat",
+    "X": "minecraft:glass_bottle"
+  },
+  "result": {
+    "id": "railexpress:tgv_bar_car",
+    "count": 1
+  }
+}

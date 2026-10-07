@@ -11,6 +11,9 @@ import org.joml.Vector3f;
  * puis rendu à chaque image. Les unités sont des blocs ; +Z est l'avant du véhicule, +Y le haut.
  */
 public final class Mesh {
+	/** Couleur spéciale : la facette n'est pas dessinée (ouverture de fenêtre ou de porte). */
+	public static final int HOLE = 0;
+
 	/** Pour chaque quad : 12 coordonnées, 3 composantes de normale. */
 	private final List<float[]> quads = new ArrayList<>();
 	private final List<Integer> colors = new ArrayList<>();
@@ -43,7 +46,20 @@ public final class Mesh {
 		float cx = (a.x + b.x + c.x + d.x) / 4;
 		float cy = (a.y + b.y + c.y + d.y) / 4;
 		float cz = (a.z + b.z + c.z + d.z) / 4;
-		quad(a, b, c, d, fn.color(cx, cy, cz, n.x, n.y, n.z));
+		int color = fn.color(cx, cy, cz, n.x, n.y, n.z);
+		if (color != HOLE) {
+			quad(a, b, c, d, color);
+		}
+	}
+
+	/** Quad dont la normale est forcée du côté indiqué. */
+	public void quadFacing(Vector3f a, Vector3f b, Vector3f c, Vector3f d, float nx, float ny, float nz, int color) {
+		Vector3f n = new Vector3f(c).sub(a).cross(new Vector3f(d).sub(b));
+		if (n.x * nx + n.y * ny + n.z * nz < 0) {
+			quad(a, d, c, b, color);
+		} else {
+			quad(a, b, c, d, color);
+		}
 	}
 
 	/** Pavé aligné sur les axes. */
@@ -58,6 +74,32 @@ public final class Mesh {
 		quad(p100, p000, p010, p110, color); // arrière (-z)
 		quad(p101, p100, p110, p111, color); // droite (+x)
 		quad(p000, p001, p011, p010, color); // gauche (-x)
+		return this;
+	}
+
+	/** Repère local tourné autour de l'axe Y (pour les sièges et meubles orientés). */
+	public record Frame(float ox, float oy, float oz, float yawDeg) {
+		public Vector3f map(float x, float y, float z) {
+			double a = Math.toRadians(yawDeg);
+			float c = (float) Math.cos(a);
+			float s = (float) Math.sin(a);
+			// yaw 0 : +Z local = +Z ; yaw 90 : +Z local = +X
+			return new Vector3f(ox + x * c + z * s, oy + y, oz - x * s + z * c);
+		}
+	}
+
+	/** Pavé exprimé dans un repère local tourné. */
+	public Mesh box(Frame f, float x0, float y0, float z0, float x1, float y1, float z1, int color) {
+		Vector3f p000 = f.map(x0, y0, z0), p100 = f.map(x1, y0, z0);
+		Vector3f p010 = f.map(x0, y1, z0), p110 = f.map(x1, y1, z0);
+		Vector3f p001 = f.map(x0, y0, z1), p101 = f.map(x1, y0, z1);
+		Vector3f p011 = f.map(x0, y1, z1), p111 = f.map(x1, y1, z1);
+		quad(p010, p011, p111, p110, color);
+		quad(p000, p100, p101, p001, darker(color, 0.75F));
+		quad(p001, p101, p111, p011, color);
+		quad(p100, p000, p010, p110, color);
+		quad(p101, p100, p110, p111, color);
+		quad(p000, p001, p011, p010, color);
 		return this;
 	}
 
@@ -135,9 +177,17 @@ public final class Mesh {
 
 	/** Caisse lissée passant par une suite de sections (permet les nez profilés des trains à grande vitesse). */
 	public Mesh loft(Section[] sections, int arcSegments, boolean capStart, boolean capEnd, ColorFunction fn) {
+		return loft(sections, arcSegments, capStart, capEnd, fn, null);
+	}
+
+	/**
+	 * @param sideBreaks altitudes supplémentaires où découper les flancs (bords de fenêtres, bandes de livrée) ;
+	 *                   uniquement pour des sections de même hauteur.
+	 */
+	public Mesh loft(Section[] sections, int arcSegments, boolean capStart, boolean capEnd, ColorFunction fn, float[] sideBreaks) {
 		List<Vector3f[]> rings = new ArrayList<>();
 		for (Section section : sections) {
-			rings.add(ring(section, arcSegments));
+			rings.add(ring(section, arcSegments, sideBreaks));
 		}
 		for (int i = 0; i + 1 < rings.size(); i++) {
 			Vector3f[] r0 = rings.get(i);
@@ -148,10 +198,10 @@ public final class Mesh {
 			}
 		}
 		if (capStart) {
-			cap(rings.get(0), sections[0].z, false, fn);
+			cap(rings.get(0), sections[0].z(), false, fn);
 		}
 		if (capEnd) {
-			cap(rings.get(rings.size() - 1), sections[sections.length - 1].z, true, fn);
+			cap(rings.get(rings.size() - 1), sections[sections.length - 1].z(), true, fn);
 		}
 		return this;
 	}
@@ -176,21 +226,70 @@ public final class Mesh {
 	private static final int ROOF_STEPS = 6;
 	private static final int FLOOR_STEPS = 3;
 
-	private static Vector3f[] ring(Section s, int seg) {
+	public static Vector3f[] ring(Section s, int seg, float[] sideBreaks) {
 		List<Vector3f> pts = new ArrayList<>();
 		float rT = Math.min(s.roofRadius, Math.min(s.halfWidth, (s.top - s.bottom) / 2) * 0.999F);
 		float rB = Math.min(s.floorRadius, Math.min(s.halfWidth, (s.top - s.bottom) / 2) * 0.999F);
 		// Parcours dans le sens trigonométrique vu de l'avant ; les flancs sont subdivisés pour les bandes de livrée
 		line(pts, 0, s.bottom, s.halfWidth - rB, s.bottom, FLOOR_STEPS, s.z);
 		arc(pts, s.halfWidth - rB, s.bottom + rB, rB, -90, 0, seg, s.z);
-		line(pts, s.halfWidth, s.bottom + rB, s.halfWidth, s.top - rT, SIDE_STEPS, s.z);
+		side(pts, s.halfWidth, s.bottom + rB, s.top - rT, sideBreaks, s.z, true);
 		arc(pts, s.halfWidth - rT, s.top - rT, rT, 0, 90, seg, s.z);
 		line(pts, s.halfWidth - rT, s.top, -s.halfWidth + rT, s.top, ROOF_STEPS, s.z);
 		arc(pts, -s.halfWidth + rT, s.top - rT, rT, 90, 180, seg, s.z);
-		line(pts, -s.halfWidth, s.top - rT, -s.halfWidth, s.bottom + rB, SIDE_STEPS, s.z);
+		side(pts, -s.halfWidth, s.bottom + rB, s.top - rT, sideBreaks, s.z, false);
 		arc(pts, -s.halfWidth + rB, s.bottom + rB, rB, 180, 270, seg, s.z);
 		line(pts, -s.halfWidth + rB, s.bottom, 0, s.bottom, FLOOR_STEPS, s.z);
 		return pts.toArray(new Vector3f[0]);
+	}
+
+	/** Points intermédiaires d'un flanc vertical, avec découpes supplémentaires. */
+	private static void side(List<Vector3f> pts, float x, float y0, float y1, float[] breaks, float z, boolean up) {
+		List<Float> clean = new ArrayList<>();
+		for (int i = 1; i < SIDE_STEPS; i++) {
+			clean.add(y0 + (y1 - y0) * i / SIDE_STEPS);
+		}
+		if (breaks != null) {
+			for (float b : breaks) {
+				boolean near = false;
+				for (float y : clean) {
+					near |= Math.abs(y - b) < 0.004F;
+				}
+				if (!near && b > y0 + 0.005F && b < y1 - 0.005F) {
+					clean.add(b);
+				}
+			}
+		}
+		clean.sort(Float::compare);
+		if (!up) {
+			java.util.Collections.reverse(clean);
+		}
+		for (float y : clean) {
+			pts.add(new Vector3f(x, y, z));
+		}
+	}
+
+	/**
+	 * Face d'extrémité percée d'une ouverture rectangulaire (passage d'intercirculation).
+	 * @param facing +1 si la face regarde vers +Z
+	 */
+	public Mesh endFrame(Section s, int seg, float hx, float hy0, float hy1, int facing, int color) {
+		Vector3f[] ring = ring(s, seg, null);
+		float cy = (hy0 + hy1) / 2;
+		Vector3f[] inner = new Vector3f[ring.length];
+		for (int k = 0; k < ring.length; k++) {
+			float dx = ring[k].x;
+			float dy = ring[k].y - cy;
+			float tx = Math.abs(dx) < 1.0E-6F ? Float.MAX_VALUE : hx / Math.abs(dx);
+			float ty = Math.abs(dy) < 1.0E-6F ? Float.MAX_VALUE : ((hy1 - hy0) / 2) / Math.abs(dy);
+			float t = Math.min(tx, ty);
+			inner[k] = new Vector3f(dx * t, cy + dy * t, s.z);
+		}
+		for (int k = 0; k < ring.length; k++) {
+			int l = (k + 1) % ring.length;
+			quadFacing(ring[k], ring[l], inner[l], inner[k], 0, 0, facing, color);
+		}
+		return this;
 	}
 
 	/** Points intermédiaires d'un segment, extrémités exclues (elles sont fournies par les arcs). */
@@ -210,9 +309,9 @@ public final class Mesh {
 
 	public static int darker(int argb, float factor) {
 		int a = argb >>> 24;
-		int r = (int) (((argb >> 16) & 0xFF) * factor);
-		int g = (int) (((argb >> 8) & 0xFF) * factor);
-		int b = (int) ((argb & 0xFF) * factor);
+		int r = Math.min(255, (int) (((argb >> 16) & 0xFF) * factor));
+		int g = Math.min(255, (int) (((argb >> 8) & 0xFF) * factor));
+		int b = Math.min(255, (int) ((argb & 0xFF) * factor));
 		return (a << 24) | (r << 16) | (g << 8) | b;
 	}
 

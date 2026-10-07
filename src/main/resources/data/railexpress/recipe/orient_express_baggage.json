@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "LLL",
+    "CXC",
+    "W W"
+  ],
+  "key": {
+    "W": "railexpress:wheel_set",
+    "L": "minecraft:blue_wool",
+    "C": "minecraft:chest",
+    "X": "minecraft:barrel"
+  },
+  "result": {
+    "id": "railexpress:orient_express_baggage",
+    "count": 1
+  }
+}

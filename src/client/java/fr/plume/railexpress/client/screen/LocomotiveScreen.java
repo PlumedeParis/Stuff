@@ -59,11 +59,11 @@ public class LocomotiveScreen extends AbstractContainerScreen<LocomotiveMenu> {
 	// ------------------------------------------------------------------
 
 	private int themeTop() {
-		return menu.isSteam() ? 0xFF2F6B45 : 0xFF2C55A8;
+		return menu.isDiesel() ? 0xFFD9A11A : menu.isSteam() ? 0xFF2F6B45 : 0xFF2C55A8;
 	}
 
 	private int themeBottom() {
-		return menu.isSteam() ? 0xFF173A25 : 0xFF17305F;
+		return menu.isDiesel() ? 0xFF8A5A0A : menu.isSteam() ? 0xFF173A25 : 0xFF17305F;
 	}
 
 	@Override
@@ -89,7 +89,7 @@ public class LocomotiveScreen extends AbstractContainerScreen<LocomotiveMenu> {
 
 		drawSpeedometer(g, x + 46, y + 72);
 		drawThrottle(g, x + 90, y + 24);
-		if (menu.isSteam()) {
+		if (menu.isFuelPowered()) {
 			drawSteamPanel(g, x + 144, y + 24);
 		} else {
 			drawElectricPanel(g, x + 144, y + 24);
@@ -118,7 +118,7 @@ public class LocomotiveScreen extends AbstractContainerScreen<LocomotiveMenu> {
 
 	private void drawSpeedometer(GuiGraphics g, int cx, int cy) {
 		int speed = menu.get(0);
-		int max = menu.isSteam() ? 100 : 220;
+		int max = menu.isFuelPowered() ? 120 : 220;
 		int radius = 32;
 		// Graduations colorées
 		for (int i = 0; i <= 60; i++) {
@@ -184,7 +184,7 @@ public class LocomotiveScreen extends AbstractContainerScreen<LocomotiveMenu> {
 	}
 
 	private void drawSteamPanel(GuiGraphics g, int x, int y) {
-		Component label = Component.translatable("gui.railexpress.firebox");
+		Component label = Component.translatable(menu.isDiesel() ? "gui.railexpress.fuel_tank" : "gui.railexpress.firebox");
 		g.drawString(font, label, x + 32 - font.width(label) / 2, y + 4, 0xFFB8C2D0, false);
 		int burn = menu.get(4);
 		int burnMax = Math.max(1, menu.get(5));

@@ -2,6 +2,7 @@ package fr.plume.railexpress.client;
 
 import fr.plume.railexpress.RailExpress;
 import fr.plume.railexpress.client.render.TrainCarRenderer;
+import fr.plume.railexpress.client.render.TrainPartRenderer;
 import fr.plume.railexpress.client.screen.LocomotiveScreen;
 import fr.plume.railexpress.client.screen.TrainHud;
 import fr.plume.railexpress.entity.CarType;
@@ -28,6 +29,7 @@ public class RailExpressClient implements ClientModInitializer {
 		for (CarType carType : CarType.values()) {
 			EntityRendererRegistry.register(ModEntities.get(carType), TrainCarRenderer::new);
 		}
+		EntityRendererRegistry.register(ModEntities.PART, TrainPartRenderer::new);
 		MenuScreens.register(ModMenus.LOCOMOTIVE, LocomotiveScreen::new);
 		BlockRenderLayerMap.putBlocks(ChunkSectionLayer.CUTOUT,
 				ModBlocks.TRACK, ModBlocks.HIGH_SPEED_TRACK, ModBlocks.ELECTRIFIED_TRACK, ModBlocks.STATION_TRACK,
@@ -53,8 +55,11 @@ public class RailExpressClient implements ClientModInitializer {
 				if (type.isLocomotive()) {
 					lines.add(Component.translatable("tooltip.railexpress.max_speed", Math.round(type.maxSpeed * 72)).withStyle(ChatFormatting.AQUA));
 				}
-				if (type.seats.length > 0) {
-					lines.add(Component.translatable("tooltip.railexpress.seats", type.seats.length).withStyle(ChatFormatting.DARK_AQUA));
+				if (type.seatCount() > 0) {
+					lines.add(Component.translatable("tooltip.railexpress.seats", type.seatCount()).withStyle(ChatFormatting.DARK_AQUA));
+				}
+				if (type.layout().enterable) {
+					lines.add(Component.translatable("tooltip.railexpress.interior").withStyle(ChatFormatting.GRAY));
 				}
 			}
 		});

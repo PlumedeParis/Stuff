@@ -9,4 +9,5 @@ public class TrainRenderState extends EntityRenderState {
 	public float pitch;
 	public float wheelRot;
 	public float hurt;
+	public final float[] doors = new float[16];
 }

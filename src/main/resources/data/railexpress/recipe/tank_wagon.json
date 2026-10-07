@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SBS",
+    "SBS",
+    "W W"
+  ],
+  "key": {
+    "W": "railexpress:wheel_set",
+    "S": "railexpress:steel_ingot",
+    "B": "minecraft:bucket"
+  },
+  "result": {
+    "id": "railexpress:tank_wagon",
+    "count": 1
+  }
+}

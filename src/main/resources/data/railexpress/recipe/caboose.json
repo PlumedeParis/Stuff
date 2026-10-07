@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RGR",
+    "PFP",
+    "W W"
+  ],
+  "key": {
+    "W": "railexpress:wheel_set",
+    "R": "minecraft:red_concrete",
+    "G": "minecraft:glass_pane",
+    "P": "#minecraft:planks",
+    "F": "minecraft:furnace"
+  },
+  "result": {
+    "id": "railexpress:caboose",
+    "count": 1
+  }
+}

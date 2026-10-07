@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PPP",
+    "CXC",
+    "W W"
+  ],
+  "key": {
+    "W": "railexpress:wheel_set",
+    "P": "#minecraft:planks",
+    "C": "minecraft:chest",
+    "X": "minecraft:barrel"
+  },
+  "result": {
+    "id": "railexpress:baggage_car",
+    "count": 1
+  }
+}

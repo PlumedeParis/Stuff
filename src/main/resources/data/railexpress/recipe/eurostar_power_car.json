@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GPC",
+    "MSM",
+    "W W"
+  ],
+  "key": {
+    "G": "minecraft:glass_pane",
+    "P": "railexpress:pantograph",
+    "C": "minecraft:yellow_concrete",
+    "M": "railexpress:electric_motor",
+    "S": "railexpress:steel_ingot",
+    "W": "railexpress:wheel_set"
+  },
+  "result": {
+    "id": "railexpress:eurostar_power_car",
+    "count": 1
+  }
+}

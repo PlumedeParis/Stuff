@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "FPF",
+    "PHP",
+    "W W"
+  ],
+  "key": {
+    "W": "railexpress:wheel_set",
+    "F": "#minecraft:wooden_fences",
+    "P": "#minecraft:planks",
+    "H": "minecraft:hay_block"
+  },
+  "result": {
+    "id": "railexpress:livestock_wagon",
+    "count": 1
+  }
+}

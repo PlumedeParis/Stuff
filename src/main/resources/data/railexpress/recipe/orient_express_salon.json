@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "LGL",
+    "TNT",
+    "W W"
+  ],
+  "key": {
+    "W": "railexpress:wheel_set",
+    "L": "minecraft:blue_wool",
+    "G": "minecraft:glass_pane",
+    "T": "railexpress:train_seat",
+    "N": "minecraft:note_block"
+  },
+  "result": {
+    "id": "railexpress:orient_express_salon",
+    "count": 1
+  }
+}

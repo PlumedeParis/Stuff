@@ -32,6 +32,8 @@ public final class ModItems {
 	public static final Item PANTOGRAPH = register("pantograph", Item::new, new Item.Properties());
 	public static final Item TRAIN_SEAT = register("train_seat", Item::new, new Item.Properties());
 
+	public static final Item FUEL_CANISTER = register("fuel_canister", Item::new, new Item.Properties().stacksTo(16));
+
 	// Outils
 	public static final Item COUPLER = register("coupler", Item::new, new Item.Properties().stacksTo(1));
 

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PGP",
+    "BBB",
+    "W W"
+  ],
+  "key": {
+    "W": "railexpress:wheel_set",
+    "P": "#minecraft:planks",
+    "G": "minecraft:glass_pane",
+    "B": "#minecraft:beds"
+  },
+  "result": {
+    "id": "railexpress:sleeper_car",
+    "count": 1
+  }
+}

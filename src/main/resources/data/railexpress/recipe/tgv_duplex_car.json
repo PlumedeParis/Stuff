@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BGB",
+    "TTT",
+    "WBW"
+  ],
+  "key": {
+    "B": "minecraft:blue_concrete",
+    "G": "minecraft:glass_pane",
+    "T": "railexpress:train_seat",
+    "W": "railexpress:wheel_set"
+  },
+  "result": {
+    "id": "railexpress:tgv_duplex_car",
+    "count": 1
+  }
+}

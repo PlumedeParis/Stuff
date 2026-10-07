@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CGR",
+    "TTT",
+    "W W"
+  ],
+  "key": {
+    "W": "railexpress:wheel_set",
+    "C": "minecraft:white_concrete",
+    "G": "minecraft:glass_pane",
+    "R": "minecraft:red_concrete",
+    "T": "railexpress:train_seat"
+  },
+  "result": {
+    "id": "railexpress:ice_car",
+    "count": 1
+  }
+}

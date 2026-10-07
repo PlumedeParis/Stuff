@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "S S",
+    "SHS",
+    "W W"
+  ],
+  "key": {
+    "W": "railexpress:wheel_set",
+    "S": "railexpress:steel_ingot",
+    "H": "minecraft:hopper"
+  },
+  "result": {
+    "id": "railexpress:hopper_wagon",
+    "count": 1
+  }
+}
