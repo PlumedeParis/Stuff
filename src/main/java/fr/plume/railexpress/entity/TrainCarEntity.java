@@ -1163,8 +1163,8 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 				crossingDistance -= Math.abs(v);
 			}
 			if (crossingDistance >= 0) {
-				double braking = 0.035;
-				double allowed = Math.sqrt(TrackWalker.TURN_SPEED * TrackWalker.TURN_SPEED + 2 * braking * Math.max(0, crossingDistance - 1));
+				double decel = 0.035;
+				double allowed = Math.sqrt(TrackWalker.TURN_SPEED * TrackWalker.TURN_SPEED + 2 * decel * Math.max(0, crossingDistance - 1));
 				limit = Math.min(limit, Math.max(TrackWalker.TURN_SPEED, allowed));
 			}
 		} else {
