@@ -193,11 +193,15 @@
   "tooltip.railexpress.switch_track.1": "Accroupi + clic droit : changer le côté de la déviation",
   "block.railexpress.crossing_track": "Croisement",
   "item.railexpress.crossing_track": "Croisement",
-  "tooltip.railexpress.crossing_track.0": "Deux voies perpendiculaires se croisent",
+  "tooltip.railexpress.crossing_track.0": "Clic droit : tout droit / à gauche / à droite",
   "block.railexpress.infinite_substation": "Sous-station illimitée",
   "item.railexpress.infinite_substation": "Sous-station illimitée",
   "tooltip.railexpress.infinite_substation.0": "Créatif : alimente TOUTES les voies électrifiées reliées",
   "tooltip.railexpress.infinite_substation.1": "Aucune limite de distance",
   "message.railexpress.switch_straight": "Aiguillage : voie directe",
-  "message.railexpress.switch_diverging": "Aiguillage : voie déviée"
+  "message.railexpress.switch_diverging": "Aiguillage : voie déviée",
+  "message.railexpress.route_straight": "Croisement : tout droit",
+  "message.railexpress.route_left": "Croisement : tourner à gauche",
+  "message.railexpress.route_right": "Croisement : tourner à droite",
+  "tooltip.railexpress.crossing_track.1": "Les trains tournent selon leur sens de marche"
 }

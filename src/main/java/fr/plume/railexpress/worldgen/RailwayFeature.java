@@ -6,7 +6,6 @@ import fr.plume.railexpress.block.ElectrifiedTrackBlock;
 import fr.plume.railexpress.block.StationTrackBlock;
 import fr.plume.railexpress.block.SwitchTrackBlock;
 import fr.plume.railexpress.block.TrackBlock;
-import fr.plume.railexpress.entity.TrackWalker;
 import fr.plume.railexpress.registry.ModBlocks;
 import java.util.ArrayList;
 import java.util.List;
@@ -338,41 +337,8 @@ public class RailwayFeature extends Feature<NoneFeatureConfiguration> {
 		if (Math.abs(cx - (c.x0 + 8)) > 30 || Math.abs(cz - (c.z0 + 8)) > 30) {
 			return;
 		}
-		boolean electric = electrified(cz, true) && electrified(cx, false);
+		// Croisement-aiguillage : clic droit pour choisir tout droit, à gauche ou à droite
 		c.set(cx, L, cz, ModBlocks.CROSSING_TRACK.defaultBlockState());
-		for (int sx = -1; sx <= 1; sx += 2) {
-			for (int sz = -1; sz <= 1; sz += 2) {
-				// Raccordement en diagonale entre la ligne est-ouest et la ligne nord-sud
-				int x = cx + sx * D;
-				int z = cz;
-				int[] in = {0, sz};
-				List<int[]> moves = new ArrayList<>();
-				for (int i = 0; i < D; i++) {
-					moves.add(new int[]{0, sz});
-					moves.add(new int[]{-sx, 0});
-				}
-				// Aiguillage sur la ligne est-ouest
-				c.set(x, L, z, ModBlocks.SWITCH_TRACK.defaultBlockState()
-						.setValue(SwitchTrackBlock.STRAIGHT_SHAPE, RailShape.EAST_WEST)
-						.setValue(SwitchTrackBlock.DIVERGE, curve(new int[]{sx, 0}, new int[]{0, sz})));
-				for (int i = 0; i < moves.size() - 1; i++) {
-					int[] m = moves.get(i);
-					x += m[0];
-					z += m[1];
-					int[] next = moves.get(i + 1);
-					RailShape shape = curve(new int[]{-m[0], -m[1]}, next);
-					BlockState state = trackState(electric, shape);
-					corridorBlock(c, x, z);
-					c.set(x, L, z, state);
-				}
-				// Aiguillage sur la ligne nord-sud
-				int zx = cx;
-				int zz = cz + sz * D;
-				c.set(zx, L, zz, ModBlocks.SWITCH_TRACK.defaultBlockState()
-						.setValue(SwitchTrackBlock.STRAIGHT_SHAPE, RailShape.NORTH_SOUTH)
-						.setValue(SwitchTrackBlock.DIVERGE, curve(new int[]{sx, 0}, new int[]{0, sz})));
-			}
-		}
 		// Poste d'aiguillage
 		for (int dx = 4; dx <= 6; dx++) {
 			for (int dz = 4; dz <= 6; dz++) {
@@ -390,26 +356,6 @@ public class RailwayFeature extends Feature<NoneFeatureConfiguration> {
 		c.set(cx + 9, L + 3, cz + 9, Blocks.LANTERN.defaultBlockState().setValue(LanternBlock.HANGING, true));
 		c.set(cx + 8, L + 1, cz + 10, Blocks.AIR.defaultBlockState());
 		c.set(cx + 8, L + 2, cz + 10, Blocks.AIR.defaultBlockState());
-	}
-
-	/** Plate-forme sous un rail isolé (raccordements). */
-	private static void corridorBlock(Chunk c, int x, int z) {
-		for (int y = L; y <= L + 5; y++) {
-			c.set(x, y, z, Blocks.AIR.defaultBlockState());
-		}
-		c.set(x, L - 1, z, Blocks.STONE_BRICKS.defaultBlockState());
-		for (Direction d : Direction.Plane.HORIZONTAL) {
-			int nx = x + d.getStepX();
-			int nz = z + d.getStepZ();
-			BlockState below = c.get(nx, L - 1, nz);
-			if (!solid(below)) {
-				c.set(nx, L - 1, nz, Blocks.STONE_BRICKS.defaultBlockState());
-			}
-			BlockState at = c.get(nx, L, nz);
-			if (!TrackWalker.isRail(at) && !at.isAir() && !at.is(ModBlocks.PLATFORM)) {
-				c.set(nx, L, nz, Blocks.AIR.defaultBlockState());
-			}
-		}
 	}
 
 	// ------------------------------------------------------------------

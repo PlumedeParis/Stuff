@@ -241,7 +241,7 @@ rail_models("station_track_on", CONCRETE, f"{NS}:block/marker_green", curves=Fal
 variants = {}
 for powered, suffix in (("false", ""), ("true", "_on")):
     for shape, v in rail_variants("station_track", False, suffix).items():
-        variants[f"powered={powered},shape={shape}"] = v
+        variants[f"powered={powered},{shape}"] = v
 blockstate("station_track", {"variants": variants})
 generated_item("station_track", f"{NS}:block/station_track")
 
@@ -278,10 +278,15 @@ blockstate("switch_track", {"variants": variants})
 generated_item("switch_track", f"{NS}:item/switch_track")
 
 cross = straight_parts(None, 0.0) + [e for e in rotate_parts(straight_parts(None, 0.0), 1) if e["faces"]["up"]["texture"] != "#ballast"]
-tex = dict(CONCRETE)
-tex["particle"] = tex["sleeper"]
-block_model("crossing_track", {"textures": tex, "elements": cross})
-blockstate("crossing_track", {"variants": {"": {"model": f"{NS}:block/crossing_track"}}})
+cross_variants = {}
+for route, lamp in (("straight", "marker_green"), ("left", "marker_yellow"), ("right", "marker_red")):
+    tex = dict(CONCRETE)
+    tex["particle"] = tex["sleeper"]
+    tex["lamp"] = f"{NS}:block/{lamp}"
+    parts = cross + [el([-6, 0, -6], [-3, 3, -3], "#ballast"), el([-5, 3, -5], [-4, 9, -4], "#rail"), el([-5.5, 9, -5.5], [-3.5, 11, -3.5], "#lamp")]
+    block_model(f"crossing_track_{route}", {"textures": tex, "elements": parts})
+    cross_variants[f"route={route}"] = {"model": f"{NS}:block/crossing_track_{route}"}
+blockstate("crossing_track", {"variants": cross_variants})
 generated_item("crossing_track", f"{NS}:item/crossing_track")
 
 block_model("infinite_substation", {"parent": "minecraft:block/cube_column",

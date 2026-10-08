@@ -33,7 +33,7 @@ Dans les nouveaux mondes (ou nouveaux chunks), un réseau est généré automati
 - des **lignes à grande vitesse** rectilignes tous les 512 blocs, nord-sud et est-ouest, toutes à la même altitude
   (y = 70) : **viaducs** au-dessus des vallées et de la mer, **tunnels** éclairés dans le relief ;
 - environ une ligne sur deux est **électrifiée** (caténaires et sous-stations intégrées) ;
-- à chaque intersection : un **croisement**, quatre **raccordements** en diagonale avec **aiguillages** et un poste d'aiguillage ;
+- à chaque intersection : un **croisement** réglable (tout droit / gauche / droite) et un poste d'aiguillage ;
 - une **halte** avec quais, marquises et bâtiment voyageurs au milieu de chaque tronçon ;
 - une **gare de village** reliée par un embranchement à la ligne la plus proche.
 

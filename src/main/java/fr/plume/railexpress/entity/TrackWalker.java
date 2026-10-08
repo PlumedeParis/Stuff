@@ -96,6 +96,9 @@ public final class TrackWalker {
 		if (pos == null) {
 			return false;
 		}
+		if (level.getBlockState(pos).getBlock() instanceof CrossingTrackBlock) {
+			return Math.abs(pos.getY() - y) < 0.1;
+		}
 		for (int[] exit : exits(shapeFor(level.getBlockState(pos), dir))) {
 			if (exit[0] * dir.x + exit[1] * dir.z < -0.5 && Math.abs(pos.getY() + exit[2] - y) < 0.1) {
 				return true;
@@ -117,13 +120,40 @@ public final class TrackWalker {
 			if (pos == null) {
 				return new Result(p, tangent, true);
 			}
-			int[][] ex = exits(shapeFor(level.getBlockState(pos), dir));
-			Vec3 d0 = new Vec3(ex[0][0], 0, ex[0][1]);
-			Vec3 d1 = new Vec3(ex[1][0], 0, ex[1][1]);
-			boolean toFirst = d0.dot(dir) > d1.dot(dir);
-			Vec3 a = exitPoint(pos, toFirst ? ex[1] : ex[0]);
-			Vec3 b = exitPoint(pos, toFirst ? ex[0] : ex[1]);
-			Vec3 exitDir = toFirst ? d0 : d1;
+			BlockState state = level.getBlockState(pos);
+			Vec3 a;
+			Vec3 b;
+			Vec3 exitDir;
+			if (state.getBlock() instanceof CrossingTrackBlock) {
+				// Côté d'entrée : le bord le plus proche, ou l'arrière du sens de marche au centre du bloc
+				double rx = p.x - (pos.getX() + 0.5);
+				double rz = p.z - (pos.getZ() + 0.5);
+				int[] entry;
+				if (Math.abs(rx) < 0.2 && Math.abs(rz) < 0.2) {
+					entry = Math.abs(dir.x) > Math.abs(dir.z) ? new int[]{dir.x > 0 ? -1 : 1, 0} : new int[]{0, dir.z > 0 ? -1 : 1};
+				} else {
+					entry = Math.abs(rx) > Math.abs(rz) ? new int[]{rx > 0 ? 1 : -1, 0} : new int[]{0, rz > 0 ? 1 : -1};
+				}
+				int[] exit = CrossingTrackBlock.exitFor(state, entry);
+				a = exitPoint(pos, new int[]{entry[0], entry[1], 0});
+				b = exitPoint(pos, new int[]{exit[0], exit[1], 0});
+				exitDir = new Vec3(exit[0], 0, exit[1]);
+				if (b.subtract(a).dot(dir) < 0) {
+					// Marche arrière sur le croisement : on repart par le côté d'entrée
+					Vec3 t = a;
+					a = b;
+					b = t;
+					exitDir = new Vec3(entry[0], 0, entry[1]);
+				}
+			} else {
+				int[][] ex = exits(shapeFor(state, dir));
+				Vec3 d0 = new Vec3(ex[0][0], 0, ex[0][1]);
+				Vec3 d1 = new Vec3(ex[1][0], 0, ex[1][1]);
+				boolean toFirst = d0.dot(dir) > d1.dot(dir);
+				a = exitPoint(pos, toFirst ? ex[1] : ex[0]);
+				b = exitPoint(pos, toFirst ? ex[0] : ex[1]);
+				exitDir = toFirst ? d0 : d1;
+			}
 			Vec3 seg = b.subtract(a);
 			double len = seg.length();
 			double t = Mth.clamp(p.subtract(a).dot(seg) / (len * len), 0.0, 1.0);
@@ -153,7 +183,7 @@ public final class TrackWalker {
 			return track.getSpeedLimit();
 		}
 		if (state.getBlock() instanceof CrossingTrackBlock) {
-			return 2.0;
+			return state.getValue(CrossingTrackBlock.ROUTE) == CrossingTrackBlock.Route.STRAIGHT ? 2.0 : 0.8;
 		}
 		return VANILLA_RAIL_LIMIT;
 	}

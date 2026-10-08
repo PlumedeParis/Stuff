@@ -29,6 +29,17 @@ public class TrainCarRenderer extends EntityRenderer<TrainCarEntity, TrainRender
 		this.shadowRadius = 1.1F;
 	}
 
+	/** Le train est long : on teste la visibilité sur toute sa longueur, pas seulement sur sa petite boîte centrale. */
+	@Override
+	public boolean shouldRender(TrainCarEntity entity, net.minecraft.client.renderer.culling.Frustum frustum, double x, double y, double z) {
+		if (!entity.shouldRender(x, y, z)) {
+			return false;
+		}
+		double reach = entity.getCarType().worldLength() / 2.0 + 1.5;
+		net.minecraft.world.phys.AABB box = entity.getBoundingBox().inflate(reach, 3.0, reach);
+		return frustum.isVisible(box);
+	}
+
 	@Override
 	public TrainRenderState createRenderState() {
 		return new TrainRenderState();

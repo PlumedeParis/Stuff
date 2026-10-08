@@ -193,11 +193,15 @@
   "tooltip.railexpress.switch_track.1": "Sneak + right-click: change diverging side",
   "block.railexpress.crossing_track": "Railway Crossing",
   "item.railexpress.crossing_track": "Railway Crossing",
-  "tooltip.railexpress.crossing_track.0": "Two perpendicular tracks cross",
+  "tooltip.railexpress.crossing_track.0": "Right-click: straight / left / right",
   "block.railexpress.infinite_substation": "Infinite Substation",
   "item.railexpress.infinite_substation": "Infinite Substation",
   "tooltip.railexpress.infinite_substation.0": "Creative: powers ALL connected electrified tracks",
   "tooltip.railexpress.infinite_substation.1": "No distance limit",
   "message.railexpress.switch_straight": "Switch: straight",
-  "message.railexpress.switch_diverging": "Switch: diverging"
+  "message.railexpress.switch_diverging": "Switch: diverging",
+  "message.railexpress.route_straight": "Crossing: straight on",
+  "message.railexpress.route_left": "Crossing: turn left",
+  "message.railexpress.route_right": "Crossing: turn right",
+  "tooltip.railexpress.crossing_track.1": "Trains turn relative to their direction of travel"
 }

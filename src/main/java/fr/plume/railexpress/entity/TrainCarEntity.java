@@ -271,6 +271,13 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 		return new ItemStack(ModItems.carItem(carType));
 	}
 
+	/** Distance d'affichage adaptée à la longueur des trains. */
+	@Override
+	public boolean shouldRenderAtSqrDistance(double distance) {
+		double range = 192.0 * getViewScale();
+		return distance < range * range;
+	}
+
 	public AABB getBoundingBoxForCulling() {
 		return this.getBoundingBox().inflate(carType.worldLength() / 2.0 + 1.0, 3.0, carType.worldLength() / 2.0 + 1.0);
 	}

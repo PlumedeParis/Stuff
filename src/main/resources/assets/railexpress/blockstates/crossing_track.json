@@ -1,7 +1,13 @@
 {
   "variants": {
-    "": {
-      "model": "railexpress:block/crossing_track"
+    "route=straight": {
+      "model": "railexpress:block/crossing_track_straight"
+    },
+    "route=left": {
+      "model": "railexpress:block/crossing_track_left"
+    },
+    "route=right": {
+      "model": "railexpress:block/crossing_track_right"
     }
   }
 }
