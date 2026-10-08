@@ -329,8 +329,13 @@ public final class CarLayout {
 				yield l;
 			}
 			case STREAMLINER_CAB -> {
-				double cab0 = h - 3.6;
-				double cab1 = h - 1.7;
+				// La cabine se termine là où commence le pare-brise, au début du nez profilé
+				double cab1 = switch (type) {
+					case SHINKANSEN_HEAD -> 1.25;
+					case EUROSTAR_POWER_CAR -> 3.05;
+					default -> 2.95;
+				};
+				double cab0 = cab1 - 1.9;
 				CarLayout l = new CarLayout(type, true, cab0, cab1, false);
 				l.solids.add(new Box(-0.8, 0.4, -h, 0.8, 2.6, cab0 - 0.05));
 				l.solids.add(new Box(-0.6, 0.4, cab1 + 0.4, 0.6, 1.2, h - 0.2));
@@ -339,8 +344,8 @@ public final class CarLayout {
 				l.seat(-0.55, cab0 + 0.6, 0, SeatStyle.STOOL);
 				l.control = new Box(-0.8, FLOOR, cab1 - 0.15, 0.8, FLOOR + 1.0, cab1 + 0.5);
 				l.props.add(new Prop(PropKind.DESK, l.control, 0));
-				l.doors.add(new Door(cab0 + 0.5, 1, 0.65, 2.4));
-				l.doors.add(new Door(cab0 + 0.5, -1, 0.65, 2.4));
+				l.doors.add(new Door(cab0 + 0.42, 1, 0.62, 2.4));
+				l.doors.add(new Door(cab0 + 0.42, -1, 0.62, 2.4));
 				yield l;
 			}
 			default -> passenger(type, h);

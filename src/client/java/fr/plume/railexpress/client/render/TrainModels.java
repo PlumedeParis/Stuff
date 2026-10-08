@@ -1347,11 +1347,21 @@ public final class TrainModels {
 				return 0xFF3A3E44;
 			}
 			if (Math.abs(nx) > 0.6F && z > back + 1.0F && z < l.interiorZ0 - 0.6F && y > 1.55F && y < 2.05F) {
+				if (shinkansen) {
+					return lv.upper;
+				}
 				return periodic(z, back, 0.2F, 0.08F) ? Mesh.darker(lv.band, 0.6F) : lv.band;
 			}
 			return bodyLivery(lv, y, nose.top);
 		};
 		hull(b, l, body, 6, breaks, bodyColor, f(l.interiorZ0), noseStart, nose.top - 0.09F, nose.roofR, lv);
+		if (shinkansen) {
+			// Motrice voyageurs : rangée de fenêtres avec encadrement
+			for (float z = back + 1.0F; z + 0.5F < l.interiorZ0 - 0.6F; z += 0.72F) {
+				m.mirroredBox(HW - 0.01F, 1.58F, z, HW + 0.012F, 2.0F, z + 0.5F, Mesh.darker(lv.upper, 0.82F));
+				m.mirroredBox(HW, 1.61F, z + 0.03F, HW + 0.016F, 1.97F, z + 0.47F, GLASS_DARK);
+			}
+		}
 		m.endFrame(s(back, HW, nose.bottom, nose.top, nose.roofR, nose.floorR), 6, 0.001F, 1.0F, 1.0F, -1, 0xFF3A3E44);
 		m.box(-0.9F, FLOOR, f(l.interiorZ0) - 0.06F, 0.9F, nose.top - 0.1F, f(l.interiorZ0), 0xFFB8B4A8);
 		m.box(-0.8F, FLOOR - 0.06F, f(l.interiorZ1), 0.8F, FLOOR, shield1, 0xFF4A4E55);
@@ -1398,14 +1408,15 @@ public final class TrainModels {
 	}
 
 	private static int noseLivery(Livery lv, Nose nose, float x, float y, float z, float nx, float ny, float noseStart, float h) {
-		boolean side = Math.abs(nx) > 0.5F;
+		// Les bandes de la caisse s'arrêtent net à la base du nez (pas d'effet « dents de scie » sur les pentes)
 		float t = (z - noseStart) / nose.length();
+		boolean base = t < 0.12F && Math.abs(nx) > 0.5F;
 		return switch (lv) {
-			case SHINKANSEN -> y < 0.72F ? lv.skirt : side && t < 0.55F ? bodyLivery(lv, y, nose.top) : lv.upper;
-			case EUROSTAR -> t > 0.82F ? lv.stripe : y < 0.8F ? lv.skirt : side && t < 0.5F ? bodyLivery(lv, y, nose.top) : lv.upper;
-			case ICE -> y < 0.78F ? lv.skirt : side && t < 0.6F && y > 1.0F && y < 1.15F ? lv.stripe : lv.upper;
-			case TGV_ORANGE -> y < 0.9F ? lv.skirt : (side || t < 0.4F) && y < 2.15F ? (y > 1.5F ? lv.band : lv.lower) : lv.lower;
-			default -> y < 0.9F ? lv.skirt : y < 1.25F ? lv.lower : y < 1.33F && side ? lv.stripe : y < 2.2F && side ? lv.band : lv.lower;
+			case SHINKANSEN -> y < 0.72F ? lv.skirt : base ? bodyLivery(lv, y, nose.top) : lv.upper;
+			case EUROSTAR -> t > 0.82F ? lv.stripe : y < 0.8F ? lv.skirt : base ? bodyLivery(lv, y, nose.top) : lv.upper;
+			case ICE -> y < 0.78F ? lv.skirt : base ? bodyLivery(lv, y, nose.top) : lv.upper;
+			case TGV_ORANGE -> y < 0.9F ? lv.skirt : base ? bodyLivery(lv, y, nose.top) : lv.lower;
+			default -> y < 0.9F ? lv.skirt : base ? bodyLivery(lv, y, nose.top) : (t > 0.8F && y < 1.3F ? lv.stripe : lv.lower);
 		};
 	}
 
