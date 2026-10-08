@@ -121,12 +121,19 @@ public class RailwayFeature extends Feature<NoneFeatureConfiguration> {
 			}
 		}
 
-		// 1) Lignes principales
+		// 1) Plate-forme des lignes principales (terrassements, viaducs, tunnels) puis voies :
+		//    en deux passes pour qu'une ligne ne recouvre jamais les rails de celle qu'elle croise
 		for (int zl : xLines) {
-			line(c, zl, true);
+			lineBed(c, zl, true);
 		}
 		for (int xl : zLines) {
-			line(c, xl, false);
+			lineBed(c, xl, false);
+		}
+		for (int zl : xLines) {
+			lineTrack(c, zl, true);
+		}
+		for (int xl : zLines) {
+			lineTrack(c, xl, false);
 		}
 		// 2) Gares de village et embranchements
 		villages(context, c);
@@ -143,16 +150,35 @@ public class RailwayFeature extends Feature<NoneFeatureConfiguration> {
 	// Lignes
 	// ------------------------------------------------------------------
 
-	/** Pose du tronçon de ligne qui traverse le chunk. {@code fixed} est la coordonnée constante de la ligne. */
-	private void line(Chunk c, int fixed, boolean xAxis) {
+	/** Vrai à moins de 5 blocs d'une ligne perpendiculaire : zone dégagée autour du croisement. */
+	private static boolean junction(int along) {
+		int rel = Math.floorMod(along - OFFSET, GRID);
+		return rel <= 5 || rel >= GRID - 5;
+	}
+
+	private static int haltCenter(int along) {
+		return Math.floorDiv(along - OFFSET, GRID) * GRID + OFFSET + GRID / 2;
+	}
+
+	/** Terrassements du tronçon de ligne qui traverse le chunk. {@code fixed} est la coordonnée constante de la ligne. */
+	private void lineBed(Chunk c, int fixed, boolean xAxis) {
+		int from = xAxis ? c.x0 : c.z0;
+		for (int along = from; along < from + 16; along++) {
+			boolean halt = Math.abs(along - haltCenter(along)) <= HALT_HALF + 2;
+			corridor(c, along, fixed, xAxis, halt ? 6 : 3, halt || junction(along));
+		}
+	}
+
+	/** Rails, caténaire, quais et bâtiments du tronçon de ligne qui traverse le chunk. */
+	private void lineTrack(Chunk c, int fixed, boolean xAxis) {
 		boolean electric = electrified(fixed, xAxis);
 		int from = xAxis ? c.x0 : c.z0;
 		for (int along = from; along < from + 16; along++) {
 			int rel = Math.floorMod(along - OFFSET, GRID);
 			boolean nearCrossing = rel < D + 4 || rel > GRID - D - 4;
-			int haltCenter = Math.floorDiv(along - OFFSET, GRID) * GRID + OFFSET + GRID / 2;
+			int haltCenter = haltCenter(along);
 			boolean halt = Math.abs(along - haltCenter) <= HALT_HALF + 2;
-			boolean tunnel = corridor(c, along, fixed, xAxis, halt ? 6 : 3, halt);
+			boolean tunnel = isTunnel(c, along, fixed, xAxis);
 			BlockState rail = trackState(electric, xAxis ? RailShape.EAST_WEST : RailShape.NORTH_SOUTH);
 			if (along == haltCenter) {
 				rail = ModBlocks.STATION_TRACK.defaultBlockState().setValue(StationTrackBlock.STRAIGHT_SHAPE, xAxis ? RailShape.EAST_WEST : RailShape.NORTH_SOUTH);
@@ -168,7 +194,7 @@ public class RailwayFeature extends Feature<NoneFeatureConfiguration> {
 				platformSlice(c, along, fixed, xAxis, along - haltCenter, along == haltCenter + HALT_HALF || along == haltCenter - HALT_HALF);
 			}
 		}
-		int haltCenter = Math.floorDiv(from - OFFSET, GRID) * GRID + OFFSET + GRID / 2;
+		int haltCenter = haltCenter(from);
 		for (int center : new int[]{haltCenter - GRID, haltCenter, haltCenter + GRID}) {
 			if (Math.abs(center - from) < 40) {
 				stationBuilding(c, center, fixed, xAxis, 1);
@@ -197,11 +223,18 @@ public class RailwayFeature extends Feature<NoneFeatureConfiguration> {
 		return xAxis ? c.get(along, y, across) : c.get(across, y, along);
 	}
 
+	/** Tunnel : la voie est couverte par le relief (ou par la voûte déjà posée). */
+	private static boolean isTunnel(Chunk c, int along, int fixed, boolean xAxis) {
+		BlockState vault = get(c, along, L + 6, fixed, xAxis);
+		return vault.is(Blocks.STONE_BRICKS) && get(c, along, L + 5, fixed, xAxis).isAir()
+				|| solid(get(c, along, L + 4, fixed, xAxis)) && solid(get(c, along, L + 7, fixed, xAxis));
+	}
+
 	/**
-	 * Plate-forme de la voie : déblai, tunnel, ballast, viaduc et piles.
-	 * @return vrai si la voie passe en tunnel à cet endroit
+	 * Plate-forme de la voie : ballast étroit, tunnel voûté, ou viaduc fin à garde-corps en fer posé sur des piles à arcs.
+	 * @param open zone dégagée (halte, croisement) : ni tunnel ni garde-corps
 	 */
-	private static boolean corridor(Chunk c, int along, int fixed, boolean xAxis, int half, boolean open) {
+	private static void corridor(Chunk c, int along, int fixed, boolean xAxis, int half, boolean open) {
 		boolean tunnel = !open && solid(get(c, along, L + 4, fixed, xAxis)) && solid(get(c, along, L + 7, fixed, xAxis));
 		boolean viaduct = !solid(get(c, along, L - 2, fixed, xAxis));
 		BlockState bricks = Blocks.STONE_BRICKS.defaultBlockState();
@@ -215,30 +248,68 @@ public class RailwayFeature extends Feature<NoneFeatureConfiguration> {
 					put(c, along, y, across, xAxis, Blocks.AIR.defaultBlockState());
 				}
 			}
-			if (Math.abs(o) <= 3) {
-				put(c, along, L - 1, across, xAxis, Math.abs(o) <= 2 ? Blocks.STONE_BRICKS.defaultBlockState() : Blocks.STONE_BRICK_SLAB.defaultBlockState()
-						.setValue(SlabBlock.TYPE, SlabType.TOP));
+			int a = Math.abs(o);
+			if (a <= 1) {
+				// Ballast sous la voie
+				put(c, along, L - 1, across, xAxis, Blocks.ANDESITE.defaultBlockState());
+			} else if (a == 2) {
+				if (viaduct) {
+					put(c, along, L - 1, across, xAxis, Blocks.POLISHED_ANDESITE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP));
+				} else if (!solid(get(c, along, L - 1, across, xAxis))) {
+					put(c, along, L - 1, across, xAxis, Blocks.COARSE_DIRT.defaultBlockState());
+				}
+			} else if (a == 3 && tunnel) {
+				put(c, along, L - 1, across, xAxis, bricks);
 			}
-			if (viaduct && !tunnel && Math.abs(o) == 3 && !open) {
-				put(c, along, L, across, xAxis, Blocks.STONE_BRICK_WALL.defaultBlockState());
+			// Garde-corps en fer forgé au bord du tablier
+			if (viaduct && !tunnel && !open && a == 2) {
+				put(c, along, L, across, xAxis, railing(xAxis));
 			}
-			if (viaduct && Math.floorMod(along, 12) == 0 && Math.abs(o) <= 1) {
-				for (int y = L - 2; y > L - 120; y--) {
-					if (solid(get(c, along, y, across, xAxis))) {
-						break;
+		}
+		if (viaduct && !tunnel) {
+			int phase = Math.floorMod(along, 16);
+			for (int o = -1; o <= 1; o++) {
+				int across = fixed + o;
+				if (phase == 0) {
+					// Pile élancée jusqu'au sol (ou au fond de l'eau)
+					put(c, along, L - 2, across, xAxis, Blocks.POLISHED_ANDESITE.defaultBlockState());
+					for (int y = L - 3; y > L - 120; y--) {
+						if (solid(get(c, along, y, across, xAxis))) {
+							break;
+						}
+						put(c, along, y, across, xAxis, o == 0 ? bricks : Blocks.STONE_BRICK_WALL.defaultBlockState());
 					}
-					put(c, along, y, across, xAxis, bricks);
+				} else if (phase == 1 || phase == 15) {
+					// Naissance des arcs
+					Direction towardPile = xAxis ? (phase == 1 ? Direction.WEST : Direction.EAST) : (phase == 1 ? Direction.NORTH : Direction.SOUTH);
+					put(c, along, L - 2, across, xAxis, Blocks.STONE_BRICK_STAIRS.defaultBlockState()
+							.setValue(StairBlock.FACING, towardPile).setValue(StairBlock.HALF, net.minecraft.world.level.block.state.properties.Half.TOP));
+				} else if (phase == 2 || phase == 14) {
+					put(c, along, L - 2, across, xAxis, Blocks.STONE_BRICK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP));
 				}
 			}
 		}
 		if (tunnel && Math.floorMod(along, 12) == 6) {
 			put(c, along, L + 5, fixed, xAxis, Blocks.LANTERN.defaultBlockState().setValue(LanternBlock.HANGING, true));
 		}
-		return tunnel;
+	}
+
+	/** Barreaux de fer reliés dans le sens de la voie. */
+	private static BlockState railing(boolean xAxis) {
+		return Blocks.IRON_BARS.defaultBlockState()
+				.setValue(xAxis ? BlockStateProperties.EAST : BlockStateProperties.NORTH, true)
+				.setValue(xAxis ? BlockStateProperties.WEST : BlockStateProperties.SOUTH, true);
 	}
 
 	/** Poteau de caténaire (pylône en treillis surmonté d'un bras). */
 	private static void mast(Chunk c, int along, int fixed, boolean xAxis, int offset) {
+		if (!solid(get(c, along, L - 1, fixed + offset, xAxis))) {
+			// Console sous le poteau quand la voie est en viaduc
+			put(c, along, L - 1, fixed + offset, xAxis, Blocks.POLISHED_ANDESITE.defaultBlockState());
+			Direction towardTrack = xAxis ? (offset > 0 ? Direction.NORTH : Direction.SOUTH) : (offset > 0 ? Direction.WEST : Direction.EAST);
+			put(c, along, L - 2, fixed + offset, xAxis, Blocks.POLISHED_ANDESITE_STAIRS.defaultBlockState()
+					.setValue(StairBlock.FACING, towardTrack).setValue(StairBlock.HALF, net.minecraft.world.level.block.state.properties.Half.TOP));
+		}
 		for (int y = L; y <= L + 3; y++) {
 			put(c, along, y, fixed + offset, xAxis, Blocks.IRON_BARS.defaultBlockState());
 		}
@@ -340,23 +411,6 @@ public class RailwayFeature extends Feature<NoneFeatureConfiguration> {
 		}
 		// Croisement-aiguillage : clic droit pour choisir tout droit, à gauche ou à droite
 		c.set(cx, L, cz, ModBlocks.CROSSING_TRACK.defaultBlockState());
-		// Poste d'aiguillage
-		for (int dx = 4; dx <= 6; dx++) {
-			for (int dz = 4; dz <= 6; dz++) {
-				int x = cx + dx + 4;
-				int z = cz + dz + 4;
-				c.set(x, L - 1, z, Blocks.STONE_BRICKS.defaultBlockState());
-				boolean wall = dx == 4 || dx == 6 || dz == 4 || dz == 6;
-				c.set(x, L, z, wall ? Blocks.BRICKS.defaultBlockState() : Blocks.POLISHED_ANDESITE.defaultBlockState());
-				for (int y = L + 1; y <= L + 3; y++) {
-					c.set(x, y, z, wall ? (y == L + 2 ? Blocks.GLASS_PANE.defaultBlockState() : Blocks.BRICKS.defaultBlockState()) : Blocks.AIR.defaultBlockState());
-				}
-				c.set(x, L + 4, z, Blocks.DEEPSLATE_TILE_SLAB.defaultBlockState());
-			}
-		}
-		c.set(cx + 9, L + 3, cz + 9, Blocks.LANTERN.defaultBlockState().setValue(LanternBlock.HANGING, true));
-		c.set(cx + 8, L + 1, cz + 10, Blocks.AIR.defaultBlockState());
-		c.set(cx + 8, L + 2, cz + 10, Blocks.AIR.defaultBlockState());
 	}
 
 	// ------------------------------------------------------------------

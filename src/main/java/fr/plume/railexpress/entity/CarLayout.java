@@ -280,12 +280,12 @@ public final class CarLayout {
 			}
 			case CABOOSE -> {
 				CarLayout l = new CarLayout(type, true, -h + 0.9, h - 0.9, true);
-				l.seat(0.5, 0.6, 90, SeatStyle.BENCH);
-				l.seat(-0.5, 0.6, -90, SeatStyle.BENCH);
-				l.seat(0.0, -1.2, 0, SeatStyle.ARMCHAIR);
-				l.bunk(0.45, FLOOR + 0.25, -0.2);
-				l.prop(PropKind.STOVE, -0.85, FLOOR, -1.6, -0.45, FLOOR + 1.0, -1.1);
-				l.prop(PropKind.DESK, -0.85, FLOOR, 1.2, -0.3, FLOOR + 0.8, 1.9);
+				// Couchette contre la paroi droite, fauteuils à gauche : l'allée centrale reste libre entre les deux portes
+				l.bunk(0.5, FLOOR + 0.25, -0.2);
+				l.seat(-0.6, 0.75, 0, SeatStyle.ARMCHAIR);
+				l.seat(-0.6, -0.75, 180, SeatStyle.ARMCHAIR);
+				l.prop(PropKind.STOVE, -0.85, FLOOR, -1.9, -0.45, FLOOR + 1.0, -1.4);
+				l.prop(PropKind.DESK, -0.85, FLOOR, 1.3, -0.35, FLOOR + 0.8, 1.9);
 				l.storage(PropKind.CABINET, 0.45, FLOOR, 1.2, 0.85, FLOOR + 1.6, 1.9);
 				for (double z : new double[]{-1.3, 0.0, 1.3}) {
 					l.window(z, 0.6, 1.5, 2.1);

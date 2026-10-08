@@ -27,7 +27,7 @@ jobs:
       - name: Publier le jar dans dist/
         if: github.event_name == 'push'
         run: |
-          mkdir -p dist
+          mkdir -p dist && rm -f dist/*.jar
           cp build/libs/rail-express-*.jar dist/
           rm -f dist/*-sources.jar
           git config user.name "github-actions[bot]"
