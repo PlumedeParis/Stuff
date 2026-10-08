@@ -83,11 +83,12 @@ public class RailwayFeature extends Feature<NoneFeatureConfiguration> {
 		return Math.round((coordinate - OFFSET) / (float) GRID) * GRID + OFFSET;
 	}
 
-	/** Certaines lignes sont électrifiées (une sur deux environ, de façon déterministe). */
+	/** La plupart des lignes sont électrifiées (de façon déterministe). */
 	private static boolean electrified(int lineCoordinate, boolean xAxis) {
 		long h = lineCoordinate * 341873128712L + (xAxis ? 132897987541L : 9182736455L);
 		h ^= (h >>> 17);
-		return (h & 1) == 0;
+		// Environ 70 % des lignes sont électrifiées
+		return Math.floorMod(h, 10) < 7;
 	}
 
 	private static boolean solid(BlockState state) {

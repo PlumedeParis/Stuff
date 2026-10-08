@@ -203,5 +203,14 @@
   "message.railexpress.route_straight": "Croisement : tout droit",
   "message.railexpress.route_left": "Croisement : tourner à gauche",
   "message.railexpress.route_right": "Croisement : tourner à droite",
-  "tooltip.railexpress.crossing_track.1": "Les trains tournent selon leur sens de marche"
+  "tooltip.railexpress.crossing_track.1": "Les trains tournent selon leur sens de marche",
+  "key.category.railexpress.controls": "Rail Express",
+  "key.railexpress.route_straight": "Croisement : tout droit",
+  "key.railexpress.route_left": "Croisement : à gauche",
+  "key.railexpress.route_right": "Croisement : à droite",
+  "gui.railexpress.crossing_ahead": "Croisement dans %s m",
+  "gui.railexpress.route_left": "Gauche",
+  "gui.railexpress.route_straight": "Tout droit",
+  "gui.railexpress.route_right": "Droite",
+  "gui.railexpress.turn_slow": "Virage : ralentissement à 50 km/h"
 }

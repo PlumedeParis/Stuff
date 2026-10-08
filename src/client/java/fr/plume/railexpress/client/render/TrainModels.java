@@ -60,7 +60,7 @@ public final class TrainModels {
 	private static final Map<WheelStyle, Map<Float, Mesh>> WHEELS = new EnumMap<>(WheelStyle.class);
 
 	// Palette commune
-	static final int GLASS = 0x6098C4DC;
+	static final int GLASS = 0x3CA8D0E6;
 	static final int GLASS_DARK = 0xFF101A26;
 	static final int BOGIE = 0xFF2B2E33;
 	static final int UNDERFRAME = 0xFF1C1E21;
@@ -188,6 +188,29 @@ public final class TrainModels {
 
 	static float f(double d) {
 		return (float) d;
+	}
+
+	/**
+	 * Habillage intérieur d'une coque profilée (nez, cabine) : vu de l'intérieur, on voit un tableau de bord sombre
+	 * et un plafond clair au lieu de la peinture extérieure. Les ouvertures (pare-brise) sont conservées.
+	 */
+	static void innerShell(Builder b, Section[] sections, int arcSeg, Mesh.ColorFunction outer, int lower, int upper) {
+		Section[] inner = new Section[sections.length];
+		float inset = 0.05F;
+		for (int i = 0; i < sections.length; i++) {
+			Section s = sections[i];
+			float hw = Math.max(0.05F, s.halfWidth() - inset);
+			float bottom = Math.min(s.bottom() + inset, s.top() - 0.1F);
+			float top = Math.max(s.top() - inset, bottom + 0.1F);
+			inner[i] = new Section(s.z(), hw, bottom, top, Math.max(0.02F, s.roofRadius() - inset), Math.max(0.01F, s.floorRadius() - inset));
+		}
+		b.body.loft(inner, arcSeg, false, false, (x, y, z, nx, ny, nz) -> {
+			float sx = x * (x == 0 ? 1 : 1 + inset / Math.max(0.05F, Math.abs(x)));
+			if (outer.color(sx, y + Math.signum(ny) * inset, z, nx, ny, nz) == Mesh.HOLE) {
+				return Mesh.HOLE;
+			}
+			return y < 1.75F ? lower : upper;
+		});
 	}
 
 	/** Bogie moderne : longerons, traverse, boîtes d'essieux, ressorts et freins. */
@@ -1053,10 +1076,11 @@ public final class TrainModels {
 				s(cab1 + 0.3F, HW, 0.85F, 1.85F, 0.2F, 0.05F),
 				s(h - 0.12F, HW, 0.85F, 1.7F, 0.15F, 0.05F)};
 		float[] breaks = yBreaks(l, 0.95F, 1.05F, 1.25F);
-		Mesh.ColorFunction windshield = (x, y, z, nx, ny, nz) -> z > cab1 - 0.3F && z < cab1 + 0.2F && y > 1.95F && y < 2.75F && Math.abs(x) < 0.85F
-				&& Math.abs(x) > 0.06F && nz > 0.3F ? Mesh.HOLE : paint.color(x, y, z, nx, ny, nz);
+		Mesh.ColorFunction windshield = (x, y, z, nx, ny, nz) -> z > cab1 - 0.3F && z < cab1 + 0.25F && y > 1.85F && y < 2.86F && Math.abs(x) < 0.9F
+				&& Math.abs(x) > 0.04F && nz > 0.25F ? Mesh.HOLE : paint.color(x, y, z, nx, ny, nz);
 		hull(b, l, cab, 4, breaks, paint, cab0, cab1 - 0.3F, 2.86F, 0.35F, lv);
 		m.loft(nose, 4, false, true, windshield);
+		innerShell(b, nose, 4, windshield, 0xFF3A3D42, 0xFFE8E4D8);
 		b.glass.loft(nose, 4, false, false, (x, y, z, nx, ny, nz) ->
 				windshield.color(x, y, z, nx, ny, nz) == Mesh.HOLE ? GLASS : Mesh.HOLE);
 		m.endFrame(s(cab0, HW - 0.07F, FLOOR, 2.86F, 0.3F, 0.01F), 4, 0.0F, FLOOR, FLOOR, -1, 0xFFB8B4A8);
@@ -1163,10 +1187,12 @@ public final class TrainModels {
 				s(front - 0.25F, HW, 0.75F, 2.95F, 0.4F, 0.1F),
 				s(front, HW, 0.75F, 2.6F, 0.3F, 0.08F),
 				s(h - 0.05F, 0.8F, 0.75F, 2.1F, 0.25F, 0.08F)};
-		Mesh.ColorFunction wind = (x, y, z, nx, ny, nz) -> Math.abs(z) > front - 0.3F && y > 2.0F && y < 2.85F && Math.abs(x) < 0.85F
-				&& Math.abs(x) > 0.05F && Math.abs(nz) > 0.3F ? Mesh.HOLE : paint.color(x, y, z, nx, ny, nz);
+		Mesh.ColorFunction wind = (x, y, z, nx, ny, nz) -> Math.abs(z) > front - 0.3F && y > 1.85F && y < 2.88F && Math.abs(x) < 0.9F
+				&& Math.abs(x) > 0.04F && Math.abs(nz) > 0.25F ? Mesh.HOLE : paint.color(x, y, z, nx, ny, nz);
 		m.loft(body, 4, true, false, wind);
 		m.loft(tail, 4, false, true, wind);
+		innerShell(b, body, 4, wind, 0xFF3A3D42, 0xFFE8E4D8);
+		innerShell(b, tail, 4, wind, 0xFF3A3D42, 0xFFE8E4D8);
 		b.glass.loft(body, 4, false, false, (x, y, z, nx, ny, nz) -> wind.color(x, y, z, nx, ny, nz) == Mesh.HOLE ? GLASS : Mesh.HOLE);
 		b.glass.loft(tail, 4, false, false, (x, y, z, nx, ny, nz) -> wind.color(x, y, z, nx, ny, nz) == Mesh.HOLE ? GLASS : Mesh.HOLE);
 		// Les cabines sont aux deux bouts ; le compartiment machine est opaque
@@ -1199,7 +1225,7 @@ public final class TrainModels {
 			m.box(-0.9F, 2.8F, Math.min(dir * cabInner, dir * front), 0.9F, 2.85F, Math.max(dir * cabInner, dir * front), 0xFFE8E4D8);
 			lamp(b, -0.55F, 1.15F, dir * (h - 0.05F), 0.09F, dir > 0 ? HEADLIGHT : TAILLIGHT, dir);
 			lamp(b, 0.55F, 1.15F, dir * (h - 0.05F), 0.09F, dir > 0 ? HEADLIGHT : TAILLIGHT, dir);
-			lamp(b, 0.0F, 2.55F, dir * (front + 0.02F), 0.07F, HEADLIGHT, dir);
+			lamp(b, 0.0F, 1.55F, dir * (h - 0.05F), 0.07F, HEADLIGHT, dir);
 			buffers(m, dir * h, dir, 0.62F, dark);
 		}
 		// Toiture : pantographes, isolateurs, disjoncteur
@@ -1220,7 +1246,7 @@ public final class TrainModels {
 				m.beam(v(x, 0.9F, z), v(x, 2.3F, z), 0.035F, 0xFFB8BEC4);
 				m.box(side * (HW - 0.08F), 0.3F, z - 0.25F, side * (HW + 0.06F), 0.35F, z + 0.25F, 0xFF4A4D52);
 			}
-			m.box(-0.4F, 2.25F, dir * (front + 0.01F) - 0.01F, 0.4F, 2.35F, dir * (front + 0.01F) + 0.01F, 0xFF22252A);
+			m.box(-0.4F, 1.62F, dir * (h - 0.06F) - 0.01F, 0.4F, 1.72F, dir * (h - 0.06F) + 0.01F, 0xFF22252A);
 		}
 		bogie(b, -h + 2.1F, 1.7F, 0.38F);
 		bogie(b, h - 2.1F, 1.7F, 0.38F);
@@ -1335,8 +1361,9 @@ public final class TrainModels {
 			return noseLivery(lv, nose, x, y, z, nx, ny, noseStart, h);
 		};
 		m.loft(noseSections, 6, false, true, noseColor);
+		innerShell(b, noseSections, 6, noseColor, 0xFF3A3D42, 0xFFE8E4D8);
 		b.glass.loft(noseSections, 6, false, false, (x, y, z, nx, ny, nz) ->
-				noseColor.color(x, y, z, nx, ny, nz) == Mesh.HOLE ? 0x80283C50 : Mesh.HOLE);
+				noseColor.color(x, y, z, nx, ny, nz) == Mesh.HOLE ? 0x48506878 : Mesh.HOLE);
 		// Encadrement du pare-brise
 		// Caisse : cabine creuse, compartiment machine opaque
 		TreeSet<Float> zs = zBreaks(l, back, noseStart);

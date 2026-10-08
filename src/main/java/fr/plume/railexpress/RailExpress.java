@@ -1,5 +1,6 @@
 package fr.plume.railexpress;
 
+import fr.plume.railexpress.network.RoutePayload;
 import fr.plume.railexpress.registry.ModBlocks;
 import fr.plume.railexpress.registry.ModEntities;
 import fr.plume.railexpress.registry.ModItems;
@@ -32,6 +33,7 @@ public class RailExpress implements ModInitializer {
 		ModEntities.init();
 		ModItems.init();
 		ModMenus.init();
+		RoutePayload.register();
 		// Réseau ferroviaire généré dans l'Overworld
 		Registry.register(BuiltInRegistries.FEATURE, id("railway"), new RailwayFeature(NoneFeatureConfiguration.CODEC));
 		BiomeModifications.addFeature(BiomeSelectors.foundInOverworld(), GenerationStep.Decoration.SURFACE_STRUCTURES,

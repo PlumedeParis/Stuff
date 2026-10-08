@@ -32,7 +32,7 @@ TGV orange, Eurostar, ICE, Shinkansen et voiture verte Shinkansen.
 Dans les nouveaux mondes (ou nouveaux chunks), un réseau est généré automatiquement :
 - des **lignes à grande vitesse** rectilignes tous les 512 blocs, nord-sud et est-ouest, toutes à la même altitude
   (y = 70) : **viaducs** au-dessus des vallées et de la mer, **tunnels** éclairés dans le relief ;
-- environ une ligne sur deux est **électrifiée** (caténaires et sous-stations intégrées) ;
+- environ **70 %** des lignes sont **électrifiées** (caténaires et sous-stations intégrées) ;
 - à chaque intersection : un **croisement** réglable (tout droit / gauche / droite) et un poste d'aiguillage ;
 - une **halte** avec quais, marquises et bâtiment voyageurs au milieu de chaque tronçon ;
 - une **gare de village** reliée par un embranchement à la ligne la plus proche.
@@ -45,6 +45,8 @@ Dans les nouveaux mondes (ou nouveaux chunks), un réseau est généré automati
 - **Couchettes** : s'allonger la nuit ; quand tous les joueurs dorment, le jour se lève.
 - **Rangements** (porte-bagages, étagères, cuisine, casiers) : clic droit pour ouvrir le stockage du wagon.
 - **Pupitre de conduite** des locomotives : clic droit dessus, ou touche *Inventaire* une fois assis.
+- **Croisements à bord** : quand un croisement approche, un panneau apparaît en haut à droite ; flèche haut = tout droit,
+  flèche gauche / droite = tourner. Pour tourner, le train ralentit automatiquement à 50 km/h avant le croisement.
 - Les joueurs debout dans un wagon sont transportés avec le train (assis, c'est plus confortable à grande vitesse).
 - **Animaux** : clic droit sur le wagon à bestiaux avec des animaux en laisse pour les embarquer.
 

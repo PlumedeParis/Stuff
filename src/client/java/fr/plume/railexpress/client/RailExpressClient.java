@@ -4,6 +4,7 @@ import fr.plume.railexpress.RailExpress;
 import fr.plume.railexpress.client.render.TrainCarRenderer;
 import fr.plume.railexpress.client.render.TrainPartRenderer;
 import fr.plume.railexpress.client.screen.LocomotiveScreen;
+import fr.plume.railexpress.client.screen.RouteControl;
 import fr.plume.railexpress.client.screen.TrainHud;
 import fr.plume.railexpress.entity.CarType;
 import fr.plume.railexpress.item.TrainCarItem;
@@ -35,6 +36,8 @@ public class RailExpressClient implements ClientModInitializer {
 				ModBlocks.TRACK, ModBlocks.HIGH_SPEED_TRACK, ModBlocks.ELECTRIFIED_TRACK, ModBlocks.STATION_TRACK,
 				ModBlocks.CATENARY_MAST, ModBlocks.BUFFER_STOP);
 		HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, RailExpress.id("train_hud"), TrainHud::render);
+		HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, RailExpress.id("route_control"), RouteControl::render);
+		RouteControl.init();
 
 		ItemTooltipCallback.EVENT.register((stack, context, flag, lines) -> {
 			Identifier id = BuiltInRegistries.ITEM.getKey(stack.getItem());

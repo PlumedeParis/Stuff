@@ -21,6 +21,8 @@ import org.jspecify.annotations.Nullable;
 public final class TrackWalker {
 	/** Vitesse maximale sur des rails vanilla. */
 	public static final double VANILLA_RAIL_LIMIT = 0.5;
+	/** Vitesse pour tourner sur un croisement : 50 km/h. */
+	public static final double TURN_SPEED = 50.0 / 72.0;
 
 	public record Result(Vec3 pos, Vec3 tangent, boolean blocked) {
 	}
@@ -173,6 +175,38 @@ public final class TrackWalker {
 		return new Result(p, tangent, true);
 	}
 
+	/** Croisement rencontré devant un train. */
+	public record CrossingAhead(BlockPos pos, double distance, BlockState state) {
+	}
+
+	/**
+	 * Cherche le premier croisement le long de la voie, dans le sens de marche, jusqu'à {@code maxDistance} blocs.
+	 */
+	@Nullable
+	public static CrossingAhead findCrossingAhead(Level level, Vec3 start, Vec3 direction, double maxDistance) {
+		Vec3 p = start;
+		Vec3 dir = horizontal(direction);
+		BlockPos startPos = findRail(level, start);
+		double travelled = 0;
+		while (travelled < maxDistance) {
+			Result r = walk(level, p, dir, 0.5);
+			travelled += 0.5;
+			BlockPos pos = findRail(level, r.pos());
+			if (pos != null && !pos.equals(startPos)) {
+				BlockState state = level.getBlockState(pos);
+				if (state.getBlock() instanceof CrossingTrackBlock) {
+					return new CrossingAhead(pos, travelled, state);
+				}
+			}
+			if (r.blocked()) {
+				return null;
+			}
+			p = r.pos();
+			dir = r.tangent();
+		}
+		return null;
+	}
+
 	public static double speedLimit(Level level, Vec3 p) {
 		BlockPos pos = findRail(level, p);
 		if (pos == null) {
@@ -183,7 +217,7 @@ public final class TrackWalker {
 			return track.getSpeedLimit();
 		}
 		if (state.getBlock() instanceof CrossingTrackBlock) {
-			return state.getValue(CrossingTrackBlock.ROUTE) == CrossingTrackBlock.Route.STRAIGHT ? 2.0 : 0.8;
+			return state.getValue(CrossingTrackBlock.ROUTE) == CrossingTrackBlock.Route.STRAIGHT ? 2.0 : TURN_SPEED;
 		}
 		return VANILLA_RAIL_LIMIT;
 	}

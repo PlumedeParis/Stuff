@@ -95,6 +95,7 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 	private int stationTimer;
 	private int departGrace;
 	private boolean approachingStation;
+	private double crossingDistance = -1;
 	private int consistSize = 1;
 	private int inputCooldown;
 	private int hornCooldown;
@@ -1150,6 +1151,25 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 		for (TrainCarEntity car : cars) {
 			limit = Math.min(limit, TrackWalker.speedLimit(level, car.position()));
 		}
+		// Anticipation : ralentir à 50 km/h avant un croisement réglé pour tourner
+		if (Math.abs(v) > 0.05) {
+			if (this.tickCount % 4 == 0) {
+				TrainCarEntity lead = v > 0 ? cars.get(0) : cars.get(n - 1);
+				Vec3 outward = v > 0 ? tf[0] : tf[n - 1].reverse();
+				TrackWalker.CrossingAhead ahead = TrackWalker.findCrossingAhead(level, lead.position(), outward, 90);
+				crossingDistance = ahead != null && ahead.state().getValue(fr.plume.railexpress.block.CrossingTrackBlock.ROUTE)
+						!= fr.plume.railexpress.block.CrossingTrackBlock.Route.STRAIGHT ? ahead.distance() : -1;
+			} else if (crossingDistance > 0) {
+				crossingDistance -= Math.abs(v);
+			}
+			if (crossingDistance >= 0) {
+				double braking = 0.035;
+				double allowed = Math.sqrt(TrackWalker.TURN_SPEED * TrackWalker.TURN_SPEED + 2 * braking * Math.max(0, crossingDistance - 1));
+				limit = Math.min(limit, Math.max(TrackWalker.TURN_SPEED, allowed));
+			}
+		} else {
+			crossingDistance = -1;
+		}
 
 		// Arrêt en gare : le train freine, s'immobilise, attend puis repart
 		if (!stationStop) {
@@ -1189,7 +1209,7 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 			v -= Math.signum(v) * resistance;
 		}
 		if (Math.abs(v) > limit) {
-			v = Math.signum(v) * Math.max(limit, Math.abs(v) - 0.06);
+			v = Math.signum(v) * Math.max(limit, Math.abs(v) - 0.05);
 		}
 
 		// Joueurs debout à l'intérieur : ils seront transportés avec leur véhicule

@@ -203,5 +203,14 @@
   "message.railexpress.route_straight": "Crossing: straight on",
   "message.railexpress.route_left": "Crossing: turn left",
   "message.railexpress.route_right": "Crossing: turn right",
-  "tooltip.railexpress.crossing_track.1": "Trains turn relative to their direction of travel"
+  "tooltip.railexpress.crossing_track.1": "Trains turn relative to their direction of travel",
+  "key.category.railexpress.controls": "Rail Express",
+  "key.railexpress.route_straight": "Crossing: straight on",
+  "key.railexpress.route_left": "Crossing: turn left",
+  "key.railexpress.route_right": "Crossing: turn right",
+  "gui.railexpress.crossing_ahead": "Crossing in %s m",
+  "gui.railexpress.route_left": "Left",
+  "gui.railexpress.route_straight": "Straight",
+  "gui.railexpress.route_right": "Right",
+  "gui.railexpress.turn_slow": "Turning: slowing to 50 km/h"
 }
