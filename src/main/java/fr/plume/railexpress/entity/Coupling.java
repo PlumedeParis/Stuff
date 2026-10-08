@@ -36,7 +36,7 @@ public final class Coupling {
 		}
 		PENDING.remove(player.getUUID());
 
-		double maxDistance = (first.getCarType().length + car.getCarType().length) / 2.0 + EXTRA_DISTANCE;
+		double maxDistance = (first.getCarType().worldLength() + car.getCarType().worldLength()) / 2.0 + EXTRA_DISTANCE;
 		if (first.distanceTo(car) > maxDistance) {
 			player.displayClientMessage(Component.translatable("message.railexpress.too_far"), true);
 			return;

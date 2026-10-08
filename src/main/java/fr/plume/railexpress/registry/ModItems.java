@@ -42,7 +42,10 @@ public final class ModItems {
 	public static final Item HIGH_SPEED_TRACK = registerBlock(ModBlocks.HIGH_SPEED_TRACK);
 	public static final Item ELECTRIFIED_TRACK = registerBlock(ModBlocks.ELECTRIFIED_TRACK);
 	public static final Item STATION_TRACK = registerBlock(ModBlocks.STATION_TRACK);
+	public static final Item SWITCH_TRACK = registerBlock(ModBlocks.SWITCH_TRACK);
+	public static final Item CROSSING_TRACK = registerBlock(ModBlocks.CROSSING_TRACK);
 	public static final Item SUBSTATION = registerBlock(ModBlocks.SUBSTATION);
+	public static final Item INFINITE_SUBSTATION = registerBlock(ModBlocks.INFINITE_SUBSTATION);
 	public static final Item CATENARY_MAST = registerBlock(ModBlocks.CATENARY_MAST);
 	public static final Item BUFFER_STOP = registerBlock(ModBlocks.BUFFER_STOP);
 	public static final Item PLATFORM = registerBlock(ModBlocks.PLATFORM);

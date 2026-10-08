@@ -5,7 +5,10 @@
     "railexpress:high_speed_track",
     "railexpress:electrified_track",
     "railexpress:station_track",
+    "railexpress:switch_track",
+    "railexpress:crossing_track",
     "railexpress:substation",
+    "railexpress:infinite_substation",
     "railexpress:catenary_mast",
     "railexpress:buffer_stop",
     "railexpress:platform"

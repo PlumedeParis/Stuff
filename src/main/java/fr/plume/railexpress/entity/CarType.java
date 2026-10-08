@@ -87,6 +87,11 @@ public enum CarType {
 		this.height = s.height;
 	}
 
+	/** Longueur réelle dans le monde (modèle mis à l'échelle). */
+	public double worldLength() {
+		return length * CarLayout.SCALE;
+	}
+
 	public boolean isLocomotive() {
 		return power != Power.NONE;
 	}

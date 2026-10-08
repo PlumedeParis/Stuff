@@ -272,7 +272,7 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 	}
 
 	public AABB getBoundingBoxForCulling() {
-		return this.getBoundingBox().inflate(carType.length / 2.0 + 1.0, 2.0, carType.length / 2.0 + 1.0);
+		return this.getBoundingBox().inflate(carType.worldLength() / 2.0 + 1.0, 3.0, carType.worldLength() / 2.0 + 1.0);
 	}
 
 	// ------------------------------------------------------------------
@@ -281,11 +281,13 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 
 	/** Convertit une position monde en coordonnées locales du véhicule. */
 	public Vec3 toLocal(Vec3 world) {
-		return world.subtract(this.position()).yRot(this.getYRot() * ((float) Math.PI / 180.0F));
+		return world.subtract(this.position()).subtract(0, CarLayout.Y_OFFSET, 0)
+				.yRot(this.getYRot() * ((float) Math.PI / 180.0F)).scale(1.0 / CarLayout.SCALE);
 	}
 
 	public Vec3 localToWorld(Vec3 local) {
-		return this.position().add(local.yRot(-this.getYRot() * ((float) Math.PI / 180.0F)));
+		return this.position().add(0, CarLayout.Y_OFFSET, 0)
+				.add(local.scale(CarLayout.SCALE).yRot(-this.getYRot() * ((float) Math.PI / 180.0F)));
 	}
 
 	/** Boîte englobante monde d'une boîte locale. */
@@ -477,7 +479,7 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 			seat = seats.isEmpty() ? null : seats.get(index % seats.size());
 		}
 		Vec3 local = seat == null ? new Vec3(0, 1.0, 0) : new Vec3(seat.x(), seat.y(), seat.z());
-		return local.yRot(-this.getYRot() * ((float) Math.PI / 180.0F));
+		return local.scale(CarLayout.SCALE).yRot(-this.getYRot() * ((float) Math.PI / 180.0F)).add(0, CarLayout.Y_OFFSET, 0);
 	}
 
 	// ------------------------------------------------------------------
@@ -1269,7 +1271,8 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 	}
 
 	private void follow(TrainCarEntity follower, TrainCarEntity target) {
-		double gap = (follower.carType.length + target.carType.length) / 2.0 + 0.4;
+		// Les tampons de deux véhicules se touchent : 0,3 bloc de chaque côté du modèle
+		double gap = (follower.carType.worldLength() + target.carType.worldLength()) / 2.0 + 0.62 * CarLayout.SCALE;
 		for (int k = 0; k < 4; k++) {
 			Vec3 delta = target.position().subtract(follower.position());
 			double dist = delta.length();
@@ -1304,7 +1307,7 @@ public class TrainCarEntity extends Entity implements HasCustomInventoryScreen {
 
 	/** Oriente la caisse selon la corde entre ses deux bogies (rendu réaliste dans les courbes). */
 	private void updateBodyOrientation() {
-		double half = carType.length * 0.36;
+		double half = carType.worldLength() * 0.36;
 		TrackWalker.Result front = TrackWalker.walk(this.level(), this.position(), facing, half);
 		TrackWalker.Result back = TrackWalker.walk(this.level(), this.position(), facing.reverse(), half);
 		Vec3 body = front.pos().subtract(back.pos());

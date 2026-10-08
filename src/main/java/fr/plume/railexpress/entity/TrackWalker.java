@@ -1,6 +1,8 @@
 package fr.plume.railexpress.entity;
 
+import fr.plume.railexpress.block.CrossingTrackBlock;
 import fr.plume.railexpress.block.ElectrifiedTrackBlock;
+import fr.plume.railexpress.block.SwitchTrackBlock;
 import fr.plume.railexpress.block.StationTrackBlock;
 import fr.plume.railexpress.block.TrackBlock;
 import net.minecraft.core.BlockPos;
@@ -27,7 +29,7 @@ public final class TrackWalker {
 	}
 
 	public static boolean isRail(BlockState state) {
-		return state.getBlock() instanceof BaseRailBlock;
+		return state.getBlock() instanceof BaseRailBlock || state.getBlock() instanceof CrossingTrackBlock;
 	}
 
 	@Nullable
@@ -44,8 +46,22 @@ public final class TrackWalker {
 	}
 
 	public static RailShape shapeOf(BlockState state) {
+		if (state.getBlock() instanceof CrossingTrackBlock) {
+			return RailShape.NORTH_SOUTH;
+		}
+		if (state.getBlock() instanceof SwitchTrackBlock) {
+			return SwitchTrackBlock.activeShape(state);
+		}
 		BaseRailBlock rail = (BaseRailBlock) state.getBlock();
 		return state.getValue(rail.getShapeProperty());
+	}
+
+	/** Forme suivie en arrivant dans la direction donnée (un croisement s'adapte au sens de passage). */
+	public static RailShape shapeFor(BlockState state, Vec3 dir) {
+		if (state.getBlock() instanceof CrossingTrackBlock) {
+			return Math.abs(dir.x) > Math.abs(dir.z) ? RailShape.EAST_WEST : RailShape.NORTH_SOUTH;
+		}
+		return shapeOf(state);
 	}
 
 	/** Les deux sorties d'un rail : {dx, dz, dy}. dy = 1 si la sortie est en haut d'une pente. */
@@ -80,7 +96,7 @@ public final class TrackWalker {
 		if (pos == null) {
 			return false;
 		}
-		for (int[] exit : exits(shapeOf(level.getBlockState(pos)))) {
+		for (int[] exit : exits(shapeFor(level.getBlockState(pos), dir))) {
 			if (exit[0] * dir.x + exit[1] * dir.z < -0.5 && Math.abs(pos.getY() + exit[2] - y) < 0.1) {
 				return true;
 			}
@@ -101,7 +117,7 @@ public final class TrackWalker {
 			if (pos == null) {
 				return new Result(p, tangent, true);
 			}
-			int[][] ex = exits(shapeOf(level.getBlockState(pos)));
+			int[][] ex = exits(shapeFor(level.getBlockState(pos), dir));
 			Vec3 d0 = new Vec3(ex[0][0], 0, ex[0][1]);
 			Vec3 d1 = new Vec3(ex[1][0], 0, ex[1][1]);
 			boolean toFirst = d0.dot(dir) > d1.dot(dir);
@@ -135,6 +151,9 @@ public final class TrackWalker {
 		BlockState state = level.getBlockState(pos);
 		if (state.getBlock() instanceof TrackBlock track) {
 			return track.getSpeedLimit();
+		}
+		if (state.getBlock() instanceof CrossingTrackBlock) {
+			return 2.0;
 		}
 		return VANILLA_RAIL_LIMIT;
 	}

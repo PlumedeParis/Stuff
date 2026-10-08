@@ -7,6 +7,7 @@ import fr.plume.railexpress.client.render.TrainModels.Axle;
 import fr.plume.railexpress.client.render.TrainModels.DoorPanel;
 import fr.plume.railexpress.client.render.TrainModels.Model;
 import fr.plume.railexpress.client.render.TrainModels.Rods;
+import fr.plume.railexpress.entity.CarLayout;
 import fr.plume.railexpress.entity.TrainCarEntity;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -53,13 +54,16 @@ public class TrainCarRenderer extends EntityRenderer<TrainCarEntity, TrainRender
 		int overlay = OverlayTexture.NO_OVERLAY;
 
 		poseStack.pushPose();
+		poseStack.translate(0, CarLayout.Y_OFFSET, 0);
 		poseStack.mulPose(Axis.YP.rotationDegrees(-state.yaw));
 		poseStack.mulPose(Axis.XP.rotationDegrees(state.pitch));
+		float scale = (float) CarLayout.SCALE;
+		poseStack.scale(scale, scale, scale);
 		if (state.hurt > 0) {
 			poseStack.mulPose(Axis.ZP.rotationDegrees(Mth.sin(state.hurt * 1.6F) * state.hurt * 0.25F));
 		}
 		collector.submitCustomGeometry(poseStack, RenderTypes.entityCutoutNoCull(WHITE),
-				(pose, consumer) -> model.body().render(pose, consumer, light, overlay, -1));
+				(pose, consumer) -> model.body().render(pose, consumer, light, overlay, -1, true));
 		if (model.lamps().size() > 0) {
 			collector.submitCustomGeometry(poseStack, RenderTypes.entityCutoutNoCull(WHITE),
 					(pose, consumer) -> model.lamps().render(pose, consumer, FULL_BRIGHT, overlay, -1));
@@ -69,13 +73,13 @@ public class TrainCarRenderer extends EntityRenderer<TrainCarEntity, TrainRender
 			poseStack.pushPose();
 			poseStack.translate(0, 0, door.slide() * smooth(open));
 			collector.submitCustomGeometry(poseStack, RenderTypes.entityCutoutNoCull(WHITE),
-					(pose, consumer) -> door.mesh().render(pose, consumer, light, overlay, -1));
+					(pose, consumer) -> door.mesh().render(pose, consumer, light, overlay, -1, true));
 			poseStack.popPose();
 		}
 
 		float driverAngle = 0;
 		for (Axle axle : model.axles()) {
-			float angle = state.wheelRot * 0.45F / axle.radius();
+			float angle = state.wheelRot * 0.45F / (axle.radius() * scale);
 			if (axle.style() == TrainModels.WheelStyle.STEAM_DRIVER) {
 				driverAngle = angle;
 			}

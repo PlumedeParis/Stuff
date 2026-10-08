@@ -23,7 +23,7 @@ import org.joml.Vector3f;
  */
 public final class TrainModels {
 	/** Demi-écartement des roues : aligné sur les rails 3D (voie de 14 pixels entre axes). */
-	public static final float GAUGE = 0.44F;
+	public static final float GAUGE = 0.35F;
 
 	public record Axle(float z, float radius, float gauge, WheelStyle style) {
 	}
@@ -229,8 +229,8 @@ public final class TrainModels {
 
 	/** Soufflet d'intercirculation autour du passage. */
 	static void bellows(Mesh m, float z, int dir, float top) {
-		float z0 = Math.min(z, z + dir * 0.22F);
-		float z1 = Math.max(z, z + dir * 0.22F);
+		float z0 = Math.min(z + dir * 0.006F, z + dir * 0.22F);
+		float z1 = Math.max(z + dir * 0.006F, z + dir * 0.22F);
 		m.box(-0.62F, 0.62F, z0, -0.42F, top, z1, RUBBER);
 		m.box(0.42F, 0.62F, z0, 0.62F, top, z1, RUBBER);
 		m.box(-0.62F, top - 0.18F, z0, 0.62F, top, z1, RUBBER);
@@ -471,8 +471,8 @@ public final class TrainModels {
 		float z0 = f(d.z() - d.width() / 2);
 		float z1 = f(d.z() + d.width() / 2);
 		float top = f(d.top());
-		float xi = side * (HW - 0.01F);
-		float xo = side * (HW + 0.03F);
+		float xi = side * (HW + 0.022F);
+		float xo = side * (HW + 0.05F);
 		float x0 = Math.min(xi, xo);
 		float x1 = Math.max(xi, xo);
 		m.box(x0, FLOOR - 0.02F, z0, x1, top - 0.6F, z1, color);
@@ -548,11 +548,65 @@ public final class TrainModels {
 					5, true, true, (x, y, z, nx, ny, nz) -> y > p.top - 0.15F ? GLASS : Mesh.HOLE);
 			m.mirroredBox(0.78F, p.top - 0.2F, -2.45F, 0.84F, p.top + 0.05F, 2.45F, lv.frame);
 		}
+		details(b, l, lv, p, h);
 		// Bogies
 		float bogieZ = h - 1.65F;
 		bogie(b, -bogieZ, 1.6F, 0.36F);
 		bogie(b, bogieZ, 1.6F, 0.36F);
 		interior(b, l, lv);
+	}
+
+	/** Détails extérieurs : joints de caisse, gouttières, mains courantes, girouettes, équipements sous caisse. */
+	private static void details(Builder b, CarLayout l, Livery lv, Profile p, float h) {
+		Mesh m = b.body;
+		boolean classic = p == Profile.CLASSIC || p == Profile.ORIENT;
+		int seam = Mesh.darker(lv.lower, 0.7F);
+		// Joints verticaux entre les panneaux de caisse (sous les fenêtres)
+		for (float z = -h + 1.2F; z < h - 1.0F; z += 1.5F) {
+			if (!nearDoor(l, z)) {
+				m.mirroredBox(HW + 0.002F, 0.75F, z, HW + 0.008F, 1.28F, z + 0.025F, seam);
+			}
+		}
+		// Gouttières de toiture
+		m.mirroredBox(HW - 0.02F, p.top - 0.44F, -h + 0.15F, HW + 0.02F, p.top - 0.41F, h - 0.15F, Mesh.darker(lv.roof, 0.7F));
+		// Mains courantes et lanternes de porte
+		for (Door d : l.doors) {
+			float x = d.side() * (HW + 0.06F);
+			for (float z : new float[]{f(d.z() - d.width() / 2 - 0.08), f(d.z() + d.width() / 2 + 0.08)}) {
+				m.beam(v(x, 0.9F, z), v(x, 2.2F, z), 0.035F, classic ? BRASS : 0xFFB8BEC4);
+				m.box(Math.min(x, d.side() * HW), 0.9F, z - 0.02F, Math.max(x, d.side() * HW), 0.93F, z + 0.02F, 0xFF8A9096);
+				m.box(Math.min(x, d.side() * HW), 2.17F, z - 0.02F, Math.max(x, d.side() * HW), 2.2F, z + 0.02F, 0xFF8A9096);
+			}
+			float zl = f(d.z());
+			if (classic) {
+				b.lamps.box(d.side() * (HW + 0.01F) - 0.03F, f(d.top()) + 0.08F, zl - 0.05F, d.side() * (HW + 0.01F) + 0.03F, f(d.top()) + 0.16F, zl + 0.05F, WARM_LIGHT);
+			} else {
+				// Girouette lumineuse au-dessus de la porte
+				float xo = d.side() * (HW + 0.012F);
+				m.box(Math.min(xo, d.side() * HW), f(d.top()) + 0.06F, zl - 0.32F, Math.max(xo, d.side() * HW), f(d.top()) + 0.2F, zl + 0.32F, 0xFF15171A);
+				b.lamps.box(Math.min(xo + d.side() * 0.002F, xo), f(d.top()) + 0.09F, zl - 0.28F, Math.max(xo + d.side() * 0.002F, xo), f(d.top()) + 0.17F, zl + 0.28F, 0xFFFF9A2E);
+			}
+		}
+		// Plaques et numéros de voiture
+		m.mirroredBox(HW + 0.004F, 1.02F, -0.35F, HW + 0.01F, 1.18F, 0.35F, classic ? 0xFFF0E6CF : 0xFFFFFFFF);
+		m.mirroredBox(HW + 0.008F, 1.06F, -0.3F, HW + 0.012F, 1.14F, -0.1F, 0xFF22252A);
+		m.mirroredBox(HW + 0.008F, 1.06F, 0.0F, HW + 0.012F, 1.14F, 0.12F, 0xFF22252A);
+		// Équipements sous caisse : réservoirs d'air, conduites, coffres
+		m.cylinder(2, -0.45F, 0.38F, -1.6F, -0.4F, 0.13F, 10, 0xFF4A4D52, 0xFF5A5E63);
+		m.cylinder(2, -0.45F, 0.38F, 0.4F, 1.6F, 0.13F, 10, 0xFF4A4D52, 0xFF5A5E63);
+		m.cylinder(2, 0.62F, 0.47F, -h + 0.4F, h - 0.4F, 0.025F, 6, 0xFF7A1F1F, 0xFF7A1F1F);
+		m.cylinder(2, -0.62F, 0.47F, -h + 0.4F, h - 0.4F, 0.025F, 6, 0xFF2E5A2E, 0xFF2E5A2E);
+		m.box(0.25F, 0.26F, -0.3F, 0.7F, 0.42F, 0.3F, 0xFF2E3136);
+		m.box(0.27F, 0.3F, -0.25F, 0.71F, 0.38F, -0.22F, 0xFFF2C14E);
+	}
+
+	private static boolean nearDoor(CarLayout l, float z) {
+		for (Door d : l.doors) {
+			if (Math.abs(z - d.z()) < d.width() / 2 + 0.15) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	// ==================================================================
@@ -813,7 +867,7 @@ public final class TrainModels {
 		// Châssis, tabliers
 		m.box(-0.36F, 0.42F, -h + 0.2F, 0.36F, 0.82F, h - 0.15F, BLACK);
 		m.mirroredBox(0.5F, 0.94F, cab1, 1.0F, 1.0F, h - 0.15F, 0xFF2A2B2D);
-		m.mirroredBox(0.98F, 0.88F, cab1, 1.02F, 1.0F, h - 0.15F, red);
+		m.mirroredBox(0.985F, 0.88F, cab1, 1.02F, 0.99F, h - 0.15F, red);
 		for (int dir = -1; dir <= 1; dir += 2) {
 			m.box(-1.0F, 0.52F, dir > 0 ? h - 0.17F : -h, 1.0F, 0.95F, dir > 0 ? h : -h + 0.17F, red);
 			buffers(m, dir * h, dir, 0.74F, red);
@@ -1037,6 +1091,17 @@ public final class TrainModels {
 			m.beam(v(-0.98F, 1.75F, zEnd - dir * 0.05F), v(-0.4F, 1.75F, zEnd - dir * 0.05F), 0.05F, yellow);
 			m.beam(v(0.4F, 1.75F, zEnd - dir * 0.05F), v(0.98F, 1.75F, zEnd - dir * 0.05F), 0.05F, yellow);
 		}
+		// Mains courantes le long du capot et sablières
+		for (int side = -1; side <= 1; side += 2) {
+			float x = side * 0.99F;
+			m.beam(v(x, 1.35F, -h + 0.3F), v(x, 1.35F, cab0), 0.035F, 0xFFF2C14E);
+			for (float z = -h + 0.3F; z < cab0; z += 1.4F) {
+				m.box(side > 0 ? 0.95F : -1.0F, 1.33F, z - 0.02F, side > 0 ? 1.0F : -0.95F, 1.37F, z + 0.02F, 0xFFF2C14E);
+			}
+			m.box(side * 0.82F - 0.12F, 0.5F, h - 2.9F, side * 0.82F + 0.12F, 0.72F, h - 2.6F, 0xFF2E3136);
+		}
+		m.cylinder(2, 0.15F, 3.02F, cab1 - 0.9F, cab1 - 0.5F, 0.06F, 8, 0xFFB8BEC4, 0xFF2A2A2D);
+		m.cylinder(2, -0.15F, 3.02F, cab1 - 0.95F, cab1 - 0.55F, 0.05F, 8, 0xFFB8BEC4, 0xFF2A2A2D);
 		// Phares
 		lamp(b, -0.5F, 2.75F, h - 0.85F, 0.09F, HEADLIGHT, 1);
 		lamp(b, 0.5F, 2.75F, h - 0.85F, 0.09F, HEADLIGHT, 1);
@@ -1145,6 +1210,18 @@ public final class TrainModels {
 			m.cylinder(1, 0.45F, z, 2.95F, 3.15F, 0.06F, 8, 0xFFB5463A, 0xFFB5463A);
 		}
 		m.box(-0.75F, 0.3F, -1.2F, 0.75F, 0.75F, 1.2F, 0xFF2E3136);
+		m.beam(v(0.45F, 3.12F, -2.0F), v(0.45F, 3.12F, 2.0F), 0.04F, 0xFFB5463A);
+		m.beam(v(-0.45F, 3.12F, -1.2F), v(-0.45F, 3.12F, 1.2F), 0.04F, 0xFFB5463A);
+		for (int dir = -1; dir <= 1; dir += 2) {
+			// Mains courantes et marchepieds de cabine
+			for (int side = -1; side <= 1; side += 2) {
+				float x = side * (HW + 0.05F);
+				float z = dir * (h - 2.05F);
+				m.beam(v(x, 0.9F, z), v(x, 2.3F, z), 0.035F, 0xFFB8BEC4);
+				m.box(side * (HW - 0.08F), 0.3F, z - 0.25F, side * (HW + 0.06F), 0.35F, z + 0.25F, 0xFF4A4D52);
+			}
+			m.box(-0.4F, 2.25F, dir * (front + 0.01F) - 0.01F, 0.4F, 2.35F, dir * (front + 0.01F) + 0.01F, 0xFF22252A);
+		}
 		bogie(b, -h + 2.1F, 1.7F, 0.38F);
 		bogie(b, h - 2.1F, 1.7F, 0.38F);
 		interior(b, l, Livery.ELECTRIC);
@@ -1292,6 +1369,17 @@ public final class TrainModels {
 		m.box(-0.08F, 0.55F, back - 0.4F, 0.08F, 0.7F, back, 0xFF4A4D52);
 		lamp(b, -0.6F, 0.9F, back, 0.06F, TAILLIGHT, -1);
 		lamp(b, 0.6F, 0.9F, back, 0.06F, TAILLIGHT, -1);
+		// Câbles de toiture, avertisseur et grilles latérales
+		float pz = type.pantographZ();
+		m.beam(v(0.25F, nose.top + 0.16F, pz + 0.45F), v(0.25F, nose.top + 0.16F, back + 0.8F), 0.04F, 0xFFB5463A);
+		m.beam(v(-0.25F, nose.top + 0.16F, pz + 0.45F), v(-0.25F, nose.top + 0.16F, back + 0.8F), 0.04F, 0xFFB5463A);
+		for (float z = back + 1.0F; z < pz - 0.8F; z += 0.6F) {
+			m.cylinder(1, 0.25F, z, nose.top + 0.12F, nose.top + 0.17F, 0.05F, 6, 0xFFE8E4D8, 0xFFE8E4D8);
+			m.cylinder(1, -0.25F, z, nose.top + 0.12F, nose.top + 0.17F, 0.05F, 6, 0xFFE8E4D8, 0xFFE8E4D8);
+		}
+		m.box(-0.18F, nose.top - 0.02F, noseStart - 0.5F, 0.18F, nose.top + 0.08F, noseStart - 0.1F, 0xFF2B2E33);
+		m.mirroredBox(HW + 0.003F, 0.95F, back + 1.6F, HW + 0.01F, 1.1F, back + 2.6F, 0xFF22252A);
+		m.mirroredBox(HW + 0.004F, 0.98F, back + 1.7F, HW + 0.011F, 1.07F, back + 2.5F, 0xFFF2F2EE);
 		// Jupes et châssis
 		m.box(-0.7F, 0.42F, back + 0.4F, 0.7F, 0.6F, noseStart + 0.6F, UNDERFRAME);
 		bogie(b, back + 1.7F, 1.6F, 0.36F);

@@ -1,77 +1,151 @@
 {
   "variants": {
-    "powered=false,shape=north_south": {
+    "powered=false,diagonal=false,shape=north_south": {
       "model": "railexpress:block/electrified_track_flat"
     },
-    "powered=false,shape=east_west": {
+    "powered=false,diagonal=true,shape=north_south": {
+      "model": "railexpress:block/electrified_track_flat"
+    },
+    "powered=false,diagonal=false,shape=east_west": {
       "model": "railexpress:block/electrified_track_flat",
       "y": 90
     },
-    "powered=false,shape=ascending_north": {
+    "powered=false,diagonal=true,shape=east_west": {
+      "model": "railexpress:block/electrified_track_flat",
+      "y": 90
+    },
+    "powered=false,diagonal=false,shape=ascending_north": {
       "model": "railexpress:block/electrified_track_raised"
     },
-    "powered=false,shape=ascending_east": {
+    "powered=false,diagonal=true,shape=ascending_north": {
+      "model": "railexpress:block/electrified_track_raised"
+    },
+    "powered=false,diagonal=false,shape=ascending_east": {
       "model": "railexpress:block/electrified_track_raised",
       "y": 90
     },
-    "powered=false,shape=ascending_south": {
+    "powered=false,diagonal=true,shape=ascending_east": {
+      "model": "railexpress:block/electrified_track_raised",
+      "y": 90
+    },
+    "powered=false,diagonal=false,shape=ascending_south": {
       "model": "railexpress:block/electrified_track_raised",
       "y": 180
     },
-    "powered=false,shape=ascending_west": {
+    "powered=false,diagonal=true,shape=ascending_south": {
+      "model": "railexpress:block/electrified_track_raised",
+      "y": 180
+    },
+    "powered=false,diagonal=false,shape=ascending_west": {
       "model": "railexpress:block/electrified_track_raised",
       "y": 270
     },
-    "powered=false,shape=south_east": {
+    "powered=false,diagonal=true,shape=ascending_west": {
+      "model": "railexpress:block/electrified_track_raised",
+      "y": 270
+    },
+    "powered=false,diagonal=false,shape=south_east": {
       "model": "railexpress:block/electrified_track_corner"
     },
-    "powered=false,shape=south_west": {
+    "powered=false,diagonal=true,shape=south_east": {
+      "model": "railexpress:block/electrified_track_diagonal"
+    },
+    "powered=false,diagonal=false,shape=south_west": {
       "model": "railexpress:block/electrified_track_corner",
       "y": 90
     },
-    "powered=false,shape=north_west": {
+    "powered=false,diagonal=true,shape=south_west": {
+      "model": "railexpress:block/electrified_track_diagonal",
+      "y": 90
+    },
+    "powered=false,diagonal=false,shape=north_west": {
       "model": "railexpress:block/electrified_track_corner",
       "y": 180
     },
-    "powered=false,shape=north_east": {
+    "powered=false,diagonal=true,shape=north_west": {
+      "model": "railexpress:block/electrified_track_diagonal",
+      "y": 180
+    },
+    "powered=false,diagonal=false,shape=north_east": {
       "model": "railexpress:block/electrified_track_corner",
       "y": 270
     },
-    "powered=true,shape=north_south": {
+    "powered=false,diagonal=true,shape=north_east": {
+      "model": "railexpress:block/electrified_track_diagonal",
+      "y": 270
+    },
+    "powered=true,diagonal=false,shape=north_south": {
       "model": "railexpress:block/electrified_track_on_flat"
     },
-    "powered=true,shape=east_west": {
+    "powered=true,diagonal=true,shape=north_south": {
+      "model": "railexpress:block/electrified_track_on_flat"
+    },
+    "powered=true,diagonal=false,shape=east_west": {
       "model": "railexpress:block/electrified_track_on_flat",
       "y": 90
     },
-    "powered=true,shape=ascending_north": {
+    "powered=true,diagonal=true,shape=east_west": {
+      "model": "railexpress:block/electrified_track_on_flat",
+      "y": 90
+    },
+    "powered=true,diagonal=false,shape=ascending_north": {
       "model": "railexpress:block/electrified_track_on_raised"
     },
-    "powered=true,shape=ascending_east": {
+    "powered=true,diagonal=true,shape=ascending_north": {
+      "model": "railexpress:block/electrified_track_on_raised"
+    },
+    "powered=true,diagonal=false,shape=ascending_east": {
       "model": "railexpress:block/electrified_track_on_raised",
       "y": 90
     },
-    "powered=true,shape=ascending_south": {
+    "powered=true,diagonal=true,shape=ascending_east": {
+      "model": "railexpress:block/electrified_track_on_raised",
+      "y": 90
+    },
+    "powered=true,diagonal=false,shape=ascending_south": {
       "model": "railexpress:block/electrified_track_on_raised",
       "y": 180
     },
-    "powered=true,shape=ascending_west": {
+    "powered=true,diagonal=true,shape=ascending_south": {
+      "model": "railexpress:block/electrified_track_on_raised",
+      "y": 180
+    },
+    "powered=true,diagonal=false,shape=ascending_west": {
       "model": "railexpress:block/electrified_track_on_raised",
       "y": 270
     },
-    "powered=true,shape=south_east": {
+    "powered=true,diagonal=true,shape=ascending_west": {
+      "model": "railexpress:block/electrified_track_on_raised",
+      "y": 270
+    },
+    "powered=true,diagonal=false,shape=south_east": {
       "model": "railexpress:block/electrified_track_on_corner"
     },
-    "powered=true,shape=south_west": {
+    "powered=true,diagonal=true,shape=south_east": {
+      "model": "railexpress:block/electrified_track_on_diagonal"
+    },
+    "powered=true,diagonal=false,shape=south_west": {
       "model": "railexpress:block/electrified_track_on_corner",
       "y": 90
     },
-    "powered=true,shape=north_west": {
+    "powered=true,diagonal=true,shape=south_west": {
+      "model": "railexpress:block/electrified_track_on_diagonal",
+      "y": 90
+    },
+    "powered=true,diagonal=false,shape=north_west": {
       "model": "railexpress:block/electrified_track_on_corner",
       "y": 180
     },
-    "powered=true,shape=north_east": {
+    "powered=true,diagonal=true,shape=north_west": {
+      "model": "railexpress:block/electrified_track_on_diagonal",
+      "y": 180
+    },
+    "powered=true,diagonal=false,shape=north_east": {
       "model": "railexpress:block/electrified_track_on_corner",
+      "y": 270
+    },
+    "powered=true,diagonal=true,shape=north_east": {
+      "model": "railexpress:block/electrified_track_on_diagonal",
       "y": 270
     }
   }

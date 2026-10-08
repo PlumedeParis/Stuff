@@ -1,10 +1,13 @@
 package fr.plume.railexpress.registry;
 
 import fr.plume.railexpress.RailExpress;
+import fr.plume.railexpress.block.CrossingTrackBlock;
 import fr.plume.railexpress.block.DecorBlock;
 import fr.plume.railexpress.block.ElectrifiedTrackBlock;
+import fr.plume.railexpress.block.InfiniteSubstationBlock;
 import fr.plume.railexpress.block.StationTrackBlock;
 import fr.plume.railexpress.block.SubstationBlock;
+import fr.plume.railexpress.block.SwitchTrackBlock;
 import fr.plume.railexpress.block.TrackBlock;
 import java.util.function.Function;
 import net.minecraft.core.Registry;
@@ -29,6 +32,16 @@ public final class ModBlocks {
 	/** Voie de gare : arrêt automatique. */
 	public static final Block STATION_TRACK = register("station_track",
 			StationTrackBlock::new, BlockBehaviour.Properties.ofFullCopy(Blocks.POWERED_RAIL));
+
+	/** Aiguillage. */
+	public static final Block SWITCH_TRACK = register("switch_track",
+			SwitchTrackBlock::new, BlockBehaviour.Properties.ofFullCopy(Blocks.RAIL));
+	/** Croisement de deux voies. */
+	public static final Block CROSSING_TRACK = register("crossing_track",
+			CrossingTrackBlock::new, BlockBehaviour.Properties.ofFullCopy(Blocks.RAIL));
+	/** Sous-station illimitée (créatif) : alimente tout le réseau électrifié relié. */
+	public static final Block INFINITE_SUBSTATION = register("infinite_substation",
+			InfiniteSubstationBlock::new, BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK).lightLevel(s -> 10));
 
 	public static final Block SUBSTATION = register("substation",
 			SubstationBlock::new, BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK));

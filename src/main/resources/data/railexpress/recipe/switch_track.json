@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "TLT",
+    "TTT"
+  ],
+  "key": {
+    "T": "railexpress:high_speed_track",
+    "L": "minecraft:lever"
+  },
+  "result": {
+    "id": "railexpress:switch_track",
+    "count": 2
+  }
+}

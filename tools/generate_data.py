@@ -123,6 +123,50 @@ def corner_parts(extra_centre=None):
     return parts
 
 
+
+
+def diagonal_parts(extra_centre=None):
+    """Corde droite d'une courbe faisant partie d'une diagonale : du bord sud (8,16) au bord est (16,8)."""
+    cx, cz, length = 12.0, 12.0, 11.3137
+    parts = [oriented(cx, cz, length + 4, 24, 0, 1, -45, "#ballast")]
+    for t in (-2.83, 2.83):
+        # traverses perpendiculaires (direction de la corde tournée de 90°)
+        px, pz = cx + t * 0.7071, cz - t * 0.7071
+        parts.append(oriented(px, pz, 22, 3, 1, 2.5, 45, "#sleeper"))
+    for off in (-7.0, 7.0):
+        px, pz = cx + off * 0.7071, cz + off * 0.7071
+        for tex, y0, y1, w in (("#rail", 2.5, 3, 3), ("#rail", 3, 4.5, 1), ("#head", 4.5, 5.5, 2)):
+            parts.append(oriented(px, pz, length, w, y0, y1, -45, tex))
+    if extra_centre:
+        parts.append(oriented(cx, cz, length, 1, 2.5, 3, -45, extra_centre))
+    return parts
+
+
+def rotate_parts(parts, quarter):
+    """Tourne une liste d'éléments de quarter x 90° (sens horaire vu de dessus, comme les états de blocs)."""
+    import copy
+    out = []
+    for e in parts:
+        e = copy.deepcopy(e)
+        for _ in range(quarter % 4):
+            (x0, y0, z0), (x1, y1, z1) = e["from"], e["to"]
+            nx0, nz0 = 16 - z1, x0
+            nx1, nz1 = 16 - z0, x1
+            e["from"] = [round(nx0, 4), y0, round(nz0, 4)]
+            e["to"] = [round(nx1, 4), y1, round(nz1, 4)]
+            if "rotation" in e:
+                r = e["rotation"]
+                ox, oy, oz = r["origin"]
+                r["origin"] = [round(16 - oz, 4), oy, round(ox, 4)]
+                if r["axis"] == "x":
+                    r["axis"] = "z"
+                elif r["axis"] == "z":
+                    r["axis"] = "x"
+                    r["angle"] = -r["angle"]
+        out.append(e)
+    return out
+
+
 def raised_parts(extra=None):
     """Voie en pente montant vers le nord : la voie droite est tournée de 45° autour de X."""
     flat = straight_parts(None, 0.0, extra)
@@ -147,6 +191,7 @@ def rail_models(name, textures, centre=None, curves=True):
     block_model(f"{name}_raised", {"textures": tex, "elements": raised_parts(extra)})
     if curves:
         block_model(f"{name}_corner", {"textures": tex, "elements": corner_parts("#centre" if centre else None)})
+        block_model(f"{name}_diagonal", {"textures": tex, "elements": diagonal_parts("#centre" if centre else None)})
 
 
 RAIL_SHAPES = {
@@ -159,14 +204,18 @@ RAIL_SHAPES = {
 
 
 def rail_variants(name, curves=True, suffix=""):
+    """Variantes par forme ; avec courbes, ajoute la propriété « diagonal »."""
     variants = {}
     for shape, (kind, rot) in RAIL_SHAPES.items():
         if kind == "corner" and not curves:
             continue
-        v = {"model": f"{NS}:block/{name}{suffix}_{kind}"}
-        if rot:
-            v["y"] = rot
-        variants[shape] = v
+        for diagonal in (("false", "true") if curves else (None,)):
+            model_kind = "diagonal" if kind == "corner" and diagonal == "true" else kind
+            v = {"model": f"{NS}:block/{name}{suffix}_{model_kind}"}
+            if rot:
+                v["y"] = rot
+            key = f"diagonal={diagonal},shape={shape}" if diagonal else f"shape={shape}"
+            variants[key] = v
     return variants
 
 
@@ -175,7 +224,7 @@ CONCRETE = {"ballast": f"{NS}:block/ballast", "sleeper": f"{NS}:block/sleeper_co
 
 for name, tex in (("track", WOOD), ("high_speed_track", CONCRETE)):
     rail_models(name, tex)
-    blockstate(name, {"variants": {f"shape={k}": v for k, v in rail_variants(name).items()}})
+    blockstate(name, {"variants": rail_variants(name)})
     generated_item(name, f"{NS}:block/{name}")
 
 rail_models("electrified_track", CONCRETE, f"{NS}:block/copper_off")
@@ -183,7 +232,7 @@ rail_models("electrified_track_on", CONCRETE, f"{NS}:block/copper_on")
 variants = {}
 for powered, suffix in (("false", ""), ("true", "_on")):
     for shape, v in rail_variants("electrified_track", True, suffix).items():
-        variants[f"powered={powered},shape={shape}"] = v
+        variants[f"powered={powered},{shape}"] = v
 blockstate("electrified_track", {"variants": variants})
 generated_item("electrified_track", f"{NS}:block/electrified_track")
 
@@ -195,6 +244,54 @@ for powered, suffix in (("false", ""), ("true", "_on")):
         variants[f"powered={powered},shape={shape}"] = v
 blockstate("station_track", {"variants": variants})
 generated_item("station_track", f"{NS}:block/station_track")
+
+
+# ------------------------------------------------------------------ aiguillage et croisement
+CURVE_ROT = {"south_east": 0, "south_west": 1, "north_west": 2, "north_east": 3}
+for axis_name, axis_q in (("north_south", 0), ("east_west", 1)):
+    for curve, q in CURVE_ROT.items():
+        for thrown in (False, True):
+            parts = rotate_parts(straight_parts(None, 0.0), axis_q) + rotate_parts(corner_parts(), q)
+            # Levier de manœuvre (vert : voie directe, jaune : voie déviée)
+            parts.append(el([-6, 0, 6], [-3, 3, 10], "#ballast"))
+            parts.append(rotated(el([-4.75, 2, 7.5], [-4.25, 9, 8.5], "#head"), "z", -22.5 if thrown else 22.5, [-4.5, 3, 8]))
+            parts.append(el([-5.5, 9, 7.25], [-3.5, 11, 8.75], "#lamp_on" if thrown else "#lamp_off"))
+            tex = dict(CONCRETE)
+            tex["particle"] = tex["sleeper"]
+            tex["lamp_on"] = f"{NS}:block/marker_yellow"
+            tex["lamp_off"] = f"{NS}:block/marker_green"
+            block_model(f"switch_track_{axis_name}_{curve}_{'thrown' if thrown else 'straight'}", {"textures": tex, "elements": parts})
+variants = {}
+for shape, (kind, rot) in RAIL_SHAPES.items():
+    if kind == "corner":
+        continue
+    for curve in CURVE_ROT:
+        for thrown in ("false", "true"):
+            for powered in ("false", "true"):
+                key = f"diverge={curve},powered={powered},shape={shape},thrown={thrown}"
+                active = "thrown" if (thrown == "true" or powered == "true") else "straight"
+                if kind == "flat":
+                    variants[key] = {"model": f"{NS}:block/switch_track_{shape}_{curve}_{active}"}
+                else:
+                    variants[key] = {"model": f"{NS}:block/high_speed_track_raised", "y": rot} if rot else {"model": f"{NS}:block/high_speed_track_raised"}
+blockstate("switch_track", {"variants": variants})
+generated_item("switch_track", f"{NS}:item/switch_track")
+
+cross = straight_parts(None, 0.0) + [e for e in rotate_parts(straight_parts(None, 0.0), 1) if e["faces"]["up"]["texture"] != "#ballast"]
+tex = dict(CONCRETE)
+tex["particle"] = tex["sleeper"]
+block_model("crossing_track", {"textures": tex, "elements": cross})
+blockstate("crossing_track", {"variants": {"": {"model": f"{NS}:block/crossing_track"}}})
+generated_item("crossing_track", f"{NS}:item/crossing_track")
+
+block_model("infinite_substation", {"parent": "minecraft:block/cube_column",
+                                    "textures": {"end": f"{NS}:block/infinite_substation_top", "side": f"{NS}:block/infinite_substation_side"}})
+blockstate("infinite_substation", {"variants": {"": {"model": f"{NS}:block/infinite_substation"}}})
+item_def("infinite_substation", f"{NS}:block/infinite_substation")
+
+# ------------------------------------------------------------------ génération du monde
+write(os.path.join(DATA, NS, "worldgen", "configured_feature", "railway.json"), {"type": f"{NS}:railway", "config": {}})
+write(os.path.join(DATA, NS, "worldgen", "placed_feature", "railway.json"), {"feature": f"{NS}:railway", "placement": []})
 
 # ------------------------------------------------------------------ blocs décoratifs
 FACINGS = {"north": 0, "east": 90, "south": 180, "west": 270}
@@ -271,7 +368,7 @@ for name in ["steel_ingot", "wheel_set", "boiler", "electric_motor", "pantograph
     generated_item(name, f"{NS}:item/{name}")
 
 # ------------------------------------------------------------------ butins & tags
-BLOCKS = ["track", "high_speed_track", "electrified_track", "station_track", "substation", "catenary_mast", "buffer_stop", "platform"]
+BLOCKS = ["track", "high_speed_track", "electrified_track", "station_track", "switch_track", "crossing_track", "substation", "infinite_substation", "catenary_mast", "buffer_stop", "platform"]
 for b in BLOCKS:
     write(os.path.join(DATA, NS, "loot_table", "blocks", b + ".json"), {
         "type": "minecraft:block",
@@ -279,7 +376,7 @@ for b in BLOCKS:
                    "conditions": [{"condition": "minecraft:survives_explosion"}]}],
         "random_sequence": f"{NS}:blocks/{b}"})
 
-RAILS = [f"{NS}:{b}" for b in ("track", "high_speed_track", "electrified_track", "station_track")]
+RAILS = [f"{NS}:{b}" for b in ("track", "high_speed_track", "electrified_track", "station_track", "switch_track")]
 write(os.path.join(DATA, "minecraft", "tags", "block", "rails.json"), {"replace": False, "values": RAILS})
 write(os.path.join(DATA, "minecraft", "tags", "item", "rails.json"), {"replace": False, "values": RAILS})
 write(os.path.join(DATA, "minecraft", "tags", "block", "mineable", "pickaxe.json"), {"replace": False, "values": [f"{NS}:{b}" for b in BLOCKS]})
@@ -315,6 +412,8 @@ shaped("station_track", ["TPT", "TRT", "TPT"], {"T": f"{NS}:track", "P": "minecr
 shaped("substation", ["SCS", "CRC", "SCS"], {"S": S, "C": "minecraft:copper_ingot", "R": "minecraft:redstone_block"}, "substation")
 shaped("catenary_mast", ["SSC", "S  ", "S  "], {"S": S, "C": "minecraft:copper_ingot"}, "catenary_mast", 4)
 shaped("buffer_stop", ["RYR", "S S", "SSS"], {"R": "minecraft:red_dye", "Y": "minecraft:yellow_dye", "S": S}, "buffer_stop")
+shaped("switch_track", ["TLT", "TTT"], {"T": f"{NS}:high_speed_track", "L": "minecraft:lever"}, "switch_track", 2)
+shaped("crossing_track", [" T ", "TST", " T "], {"T": f"{NS}:high_speed_track", "S": S}, "crossing_track", 2)
 shaped("platform", ["YYY", "CCC", "CCC"], {"Y": "minecraft:yellow_dye", "C": "minecraft:smooth_stone"}, "platform", 8)
 
 W = f"{NS}:wheel_set"

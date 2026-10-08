@@ -317,10 +317,18 @@ public final class Mesh {
 
 	/** Émet tous les quads dans le tampon de sommets. */
 	public void render(PoseStack.Pose pose, VertexConsumer consumer, int light, int overlay, int tint) {
+		render(pose, consumer, light, overlay, tint, false);
+	}
+
+	/**
+	 * @param shaded assombrit légèrement le bas des surfaces (occlusion ambiante simulée) pour un rendu moins plat
+	 */
+	public void render(PoseStack.Pose pose, VertexConsumer consumer, int light, int overlay, int tint, boolean shaded) {
 		for (int i = 0; i < quads.size(); i++) {
 			float[] q = quads.get(i);
-			int color = tint == -1 ? colors.get(i) : multiply(colors.get(i), tint);
+			int base = tint == -1 ? colors.get(i) : multiply(colors.get(i), tint);
 			for (int v = 0; v < 4; v++) {
+				int color = shaded ? darker(base, 0.8F + 0.2F * Math.min(1.0F, Math.max(0.0F, (q[v * 3 + 1] - 0.3F) / 2.4F))) : base;
 				consumer.addVertex(pose, q[v * 3], q[v * 3 + 1], q[v * 3 + 2])
 						.setColor(color)
 						.setUv(0.5F, 0.5F)

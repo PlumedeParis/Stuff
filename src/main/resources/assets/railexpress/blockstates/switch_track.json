@@ -1,0 +1,340 @@
+{
+  "variants": {
+    "diverge=south_east,powered=false,shape=north_south,thrown=false": {
+      "model": "railexpress:block/switch_track_north_south_south_east_straight"
+    },
+    "diverge=south_east,powered=true,shape=north_south,thrown=false": {
+      "model": "railexpress:block/switch_track_north_south_south_east_thrown"
+    },
+    "diverge=south_east,powered=false,shape=north_south,thrown=true": {
+      "model": "railexpress:block/switch_track_north_south_south_east_thrown"
+    },
+    "diverge=south_east,powered=true,shape=north_south,thrown=true": {
+      "model": "railexpress:block/switch_track_north_south_south_east_thrown"
+    },
+    "diverge=south_west,powered=false,shape=north_south,thrown=false": {
+      "model": "railexpress:block/switch_track_north_south_south_west_straight"
+    },
+    "diverge=south_west,powered=true,shape=north_south,thrown=false": {
+      "model": "railexpress:block/switch_track_north_south_south_west_thrown"
+    },
+    "diverge=south_west,powered=false,shape=north_south,thrown=true": {
+      "model": "railexpress:block/switch_track_north_south_south_west_thrown"
+    },
+    "diverge=south_west,powered=true,shape=north_south,thrown=true": {
+      "model": "railexpress:block/switch_track_north_south_south_west_thrown"
+    },
+    "diverge=north_west,powered=false,shape=north_south,thrown=false": {
+      "model": "railexpress:block/switch_track_north_south_north_west_straight"
+    },
+    "diverge=north_west,powered=true,shape=north_south,thrown=false": {
+      "model": "railexpress:block/switch_track_north_south_north_west_thrown"
+    },
+    "diverge=north_west,powered=false,shape=north_south,thrown=true": {
+      "model": "railexpress:block/switch_track_north_south_north_west_thrown"
+    },
+    "diverge=north_west,powered=true,shape=north_south,thrown=true": {
+      "model": "railexpress:block/switch_track_north_south_north_west_thrown"
+    },
+    "diverge=north_east,powered=false,shape=north_south,thrown=false": {
+      "model": "railexpress:block/switch_track_north_south_north_east_straight"
+    },
+    "diverge=north_east,powered=true,shape=north_south,thrown=false": {
+      "model": "railexpress:block/switch_track_north_south_north_east_thrown"
+    },
+    "diverge=north_east,powered=false,shape=north_south,thrown=true": {
+      "model": "railexpress:block/switch_track_north_south_north_east_thrown"
+    },
+    "diverge=north_east,powered=true,shape=north_south,thrown=true": {
+      "model": "railexpress:block/switch_track_north_south_north_east_thrown"
+    },
+    "diverge=south_east,powered=false,shape=east_west,thrown=false": {
+      "model": "railexpress:block/switch_track_east_west_south_east_straight"
+    },
+    "diverge=south_east,powered=true,shape=east_west,thrown=false": {
+      "model": "railexpress:block/switch_track_east_west_south_east_thrown"
+    },
+    "diverge=south_east,powered=false,shape=east_west,thrown=true": {
+      "model": "railexpress:block/switch_track_east_west_south_east_thrown"
+    },
+    "diverge=south_east,powered=true,shape=east_west,thrown=true": {
+      "model": "railexpress:block/switch_track_east_west_south_east_thrown"
+    },
+    "diverge=south_west,powered=false,shape=east_west,thrown=false": {
+      "model": "railexpress:block/switch_track_east_west_south_west_straight"
+    },
+    "diverge=south_west,powered=true,shape=east_west,thrown=false": {
+      "model": "railexpress:block/switch_track_east_west_south_west_thrown"
+    },
+    "diverge=south_west,powered=false,shape=east_west,thrown=true": {
+      "model": "railexpress:block/switch_track_east_west_south_west_thrown"
+    },
+    "diverge=south_west,powered=true,shape=east_west,thrown=true": {
+      "model": "railexpress:block/switch_track_east_west_south_west_thrown"
+    },
+    "diverge=north_west,powered=false,shape=east_west,thrown=false": {
+      "model": "railexpress:block/switch_track_east_west_north_west_straight"
+    },
+    "diverge=north_west,powered=true,shape=east_west,thrown=false": {
+      "model": "railexpress:block/switch_track_east_west_north_west_thrown"
+    },
+    "diverge=north_west,powered=false,shape=east_west,thrown=true": {
+      "model": "railexpress:block/switch_track_east_west_north_west_thrown"
+    },
+    "diverge=north_west,powered=true,shape=east_west,thrown=true": {
+      "model": "railexpress:block/switch_track_east_west_north_west_thrown"
+    },
+    "diverge=north_east,powered=false,shape=east_west,thrown=false": {
+      "model": "railexpress:block/switch_track_east_west_north_east_straight"
+    },
+    "diverge=north_east,powered=true,shape=east_west,thrown=false": {
+      "model": "railexpress:block/switch_track_east_west_north_east_thrown"
+    },
+    "diverge=north_east,powered=false,shape=east_west,thrown=true": {
+      "model": "railexpress:block/switch_track_east_west_north_east_thrown"
+    },
+    "diverge=north_east,powered=true,shape=east_west,thrown=true": {
+      "model": "railexpress:block/switch_track_east_west_north_east_thrown"
+    },
+    "diverge=south_east,powered=false,shape=ascending_north,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised"
+    },
+    "diverge=south_east,powered=true,shape=ascending_north,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised"
+    },
+    "diverge=south_east,powered=false,shape=ascending_north,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised"
+    },
+    "diverge=south_east,powered=true,shape=ascending_north,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised"
+    },
+    "diverge=south_west,powered=false,shape=ascending_north,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised"
+    },
+    "diverge=south_west,powered=true,shape=ascending_north,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised"
+    },
+    "diverge=south_west,powered=false,shape=ascending_north,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised"
+    },
+    "diverge=south_west,powered=true,shape=ascending_north,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised"
+    },
+    "diverge=north_west,powered=false,shape=ascending_north,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised"
+    },
+    "diverge=north_west,powered=true,shape=ascending_north,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised"
+    },
+    "diverge=north_west,powered=false,shape=ascending_north,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised"
+    },
+    "diverge=north_west,powered=true,shape=ascending_north,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised"
+    },
+    "diverge=north_east,powered=false,shape=ascending_north,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised"
+    },
+    "diverge=north_east,powered=true,shape=ascending_north,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised"
+    },
+    "diverge=north_east,powered=false,shape=ascending_north,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised"
+    },
+    "diverge=north_east,powered=true,shape=ascending_north,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised"
+    },
+    "diverge=south_east,powered=false,shape=ascending_east,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 90
+    },
+    "diverge=south_east,powered=true,shape=ascending_east,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 90
+    },
+    "diverge=south_east,powered=false,shape=ascending_east,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 90
+    },
+    "diverge=south_east,powered=true,shape=ascending_east,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 90
+    },
+    "diverge=south_west,powered=false,shape=ascending_east,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 90
+    },
+    "diverge=south_west,powered=true,shape=ascending_east,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 90
+    },
+    "diverge=south_west,powered=false,shape=ascending_east,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 90
+    },
+    "diverge=south_west,powered=true,shape=ascending_east,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 90
+    },
+    "diverge=north_west,powered=false,shape=ascending_east,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 90
+    },
+    "diverge=north_west,powered=true,shape=ascending_east,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 90
+    },
+    "diverge=north_west,powered=false,shape=ascending_east,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 90
+    },
+    "diverge=north_west,powered=true,shape=ascending_east,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 90
+    },
+    "diverge=north_east,powered=false,shape=ascending_east,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 90
+    },
+    "diverge=north_east,powered=true,shape=ascending_east,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 90
+    },
+    "diverge=north_east,powered=false,shape=ascending_east,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 90
+    },
+    "diverge=north_east,powered=true,shape=ascending_east,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 90
+    },
+    "diverge=south_east,powered=false,shape=ascending_south,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 180
+    },
+    "diverge=south_east,powered=true,shape=ascending_south,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 180
+    },
+    "diverge=south_east,powered=false,shape=ascending_south,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 180
+    },
+    "diverge=south_east,powered=true,shape=ascending_south,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 180
+    },
+    "diverge=south_west,powered=false,shape=ascending_south,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 180
+    },
+    "diverge=south_west,powered=true,shape=ascending_south,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 180
+    },
+    "diverge=south_west,powered=false,shape=ascending_south,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 180
+    },
+    "diverge=south_west,powered=true,shape=ascending_south,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 180
+    },
+    "diverge=north_west,powered=false,shape=ascending_south,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 180
+    },
+    "diverge=north_west,powered=true,shape=ascending_south,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 180
+    },
+    "diverge=north_west,powered=false,shape=ascending_south,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 180
+    },
+    "diverge=north_west,powered=true,shape=ascending_south,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 180
+    },
+    "diverge=north_east,powered=false,shape=ascending_south,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 180
+    },
+    "diverge=north_east,powered=true,shape=ascending_south,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 180
+    },
+    "diverge=north_east,powered=false,shape=ascending_south,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 180
+    },
+    "diverge=north_east,powered=true,shape=ascending_south,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 180
+    },
+    "diverge=south_east,powered=false,shape=ascending_west,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 270
+    },
+    "diverge=south_east,powered=true,shape=ascending_west,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 270
+    },
+    "diverge=south_east,powered=false,shape=ascending_west,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 270
+    },
+    "diverge=south_east,powered=true,shape=ascending_west,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 270
+    },
+    "diverge=south_west,powered=false,shape=ascending_west,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 270
+    },
+    "diverge=south_west,powered=true,shape=ascending_west,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 270
+    },
+    "diverge=south_west,powered=false,shape=ascending_west,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 270
+    },
+    "diverge=south_west,powered=true,shape=ascending_west,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 270
+    },
+    "diverge=north_west,powered=false,shape=ascending_west,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 270
+    },
+    "diverge=north_west,powered=true,shape=ascending_west,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 270
+    },
+    "diverge=north_west,powered=false,shape=ascending_west,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 270
+    },
+    "diverge=north_west,powered=true,shape=ascending_west,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 270
+    },
+    "diverge=north_east,powered=false,shape=ascending_west,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 270
+    },
+    "diverge=north_east,powered=true,shape=ascending_west,thrown=false": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 270
+    },
+    "diverge=north_east,powered=false,shape=ascending_west,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 270
+    },
+    "diverge=north_east,powered=true,shape=ascending_west,thrown=true": {
+      "model": "railexpress:block/high_speed_track_raised",
+      "y": 270
+    }
+  }
+}

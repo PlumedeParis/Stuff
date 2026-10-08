@@ -40,7 +40,7 @@
   "tooltip.railexpress.track.0": "Max speed: 72 km/h",
   "tooltip.railexpress.high_speed_track.0": "Max speed: 198 km/h",
   "tooltip.railexpress.electrified_track.0": "Max speed: 198 km/h",
-  "tooltip.railexpress.electrified_track.1": "Live when linked to a substation (64 tracks max.)",
+  "tooltip.railexpress.electrified_track.1": "Live when linked to a substation (64 tracks) or an infinite substation",
   "tooltip.railexpress.station_track.0": "Trains stop here for 6 seconds",
   "tooltip.railexpress.station_track.1": "Redstone powered: trains pass through",
   "tooltip.railexpress.substation.0": "Powers nearby electrified tracks",
@@ -186,5 +186,18 @@
   "message.railexpress.good_morning": "Good morning! The train ran all night.",
   "message.railexpress.animals_boarded": "Animals on board!",
   "gui.railexpress.fuel_tank": "Fuel tank",
-  "tooltip.railexpress.interior": "Right-click: doors, seats, beds and storage"
+  "tooltip.railexpress.interior": "Right-click: doors, seats, beds and storage",
+  "block.railexpress.switch_track": "Railway Switch",
+  "item.railexpress.switch_track": "Railway Switch",
+  "tooltip.railexpress.switch_track.0": "Right-click: throw the switch",
+  "tooltip.railexpress.switch_track.1": "Sneak + right-click: change diverging side",
+  "block.railexpress.crossing_track": "Railway Crossing",
+  "item.railexpress.crossing_track": "Railway Crossing",
+  "tooltip.railexpress.crossing_track.0": "Two perpendicular tracks cross",
+  "block.railexpress.infinite_substation": "Infinite Substation",
+  "item.railexpress.infinite_substation": "Infinite Substation",
+  "tooltip.railexpress.infinite_substation.0": "Creative: powers ALL connected electrified tracks",
+  "tooltip.railexpress.infinite_substation.1": "No distance limit",
+  "message.railexpress.switch_straight": "Switch: straight",
+  "message.railexpress.switch_diverging": "Switch: diverging"
 }

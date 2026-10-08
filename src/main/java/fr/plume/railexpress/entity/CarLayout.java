@@ -9,6 +9,12 @@ import java.util.List;
  * +Z vers l'avant, +X à droite, +Y vers le haut, en blocs.
  */
 public final class CarLayout {
+	/** Échelle du modèle : les véhicules sont 25 % plus grands que leurs coordonnées locales. */
+	public static final double SCALE = 1.25;
+	/** Hauteur du plan de roulement des rails 3D au-dessus du bas du bloc. */
+	public static final double RAIL_TOP = 5.5 / 16.0;
+	/** Décalage vertical du modèle pour que les roues reposent sur les rails. */
+	public static final double Y_OFFSET = RAIL_TOP - 0.06 * SCALE;
 	public static final double FLOOR = 0.6;
 	public static final double HALF_WIDTH = 0.98;
 	public static final double WALL = 0.08;

@@ -257,3 +257,47 @@ noise_tex(rgba("ffc84a"), 0.08, "copper_on")
 noise_tex(rgba("e5484d"), 0.04, "marker_red")
 noise_tex(rgba("3dd68c"), 0.04, "marker_green")
 print("textures générées")
+
+noise_tex(rgba("f2c14e"), 0.04, "marker_yellow")
+
+
+def infinite(face):
+    im = Image.new("RGBA", (16, 16), rgba("3b2f5c"))
+    d = ImageDraw.Draw(im)
+    d.rectangle([0, 0, 15, 15], outline=rgba("d4af37"))
+    if face == "top":
+        d.ellipse([3, 3, 12, 12], outline=rgba("d4af37"))
+        d.ellipse([6, 6, 9, 9], fill=rgba("8cf5ff"))
+    else:
+        d.rectangle([2, 2, 13, 13], fill=rgba("4b3d78"), outline=rgba("2a2140"))
+        d.polygon([(9, 3), (5, 9), (8, 9), (6, 13), (11, 6), (8, 6), (10, 3)], fill=rgba("8cf5ff"))
+        d.text((2, 1), "", fill=rgba("ffffff"))
+    return im
+
+
+save(infinite("side"), BLOCK, "infinite_substation_side")
+save(infinite("top"), BLOCK, "infinite_substation_top")
+
+
+def switch_icon(d, im):
+    for x in (6, 22):
+        d.rectangle([x, 2, x + 2, 30], fill=rgba("8e979f"))
+    d.arc([6, 6, 46, 46], 180, 250, fill=rgba("c9d0d6"), width=3)
+    d.arc([-2, 14, 38, 54], 190, 250, fill=rgba("c9d0d6"), width=3)
+    for y in range(4, 30, 5):
+        d.rectangle([3, y, 27, y + 1], fill=rgba("b9b6ad"))
+    d.rectangle([26, 20, 29, 29], fill=rgba("3a3d42"))
+    d.ellipse([25, 15, 30, 20], fill=rgba("f2c14e"))
+
+
+def crossing_icon(d, im):
+    for y in range(2, 30, 5):
+        d.rectangle([2, y, 29, y + 1], fill=rgba("b9b6ad"))
+    for x in (8, 22):
+        d.rectangle([x, 1, x + 2, 30], fill=rgba("8e979f"))
+    for y in (8, 22):
+        d.rectangle([1, y, 30, y + 2], fill=rgba("c9d0d6"))
+
+
+item(switch_icon, "switch_track")
+item(crossing_icon, "crossing_track")

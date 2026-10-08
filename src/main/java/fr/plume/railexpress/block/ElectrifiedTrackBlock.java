@@ -24,6 +24,8 @@ public class ElectrifiedTrackBlock extends TrackBlock {
 	public static final MapCodec<ElectrifiedTrackBlock> CODEC = simpleCodec(p -> new ElectrifiedTrackBlock(2.5, p));
 	public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
 	public static final int MAX_DISTANCE = 64;
+	/** Taille maximale du réseau parcouru (protection contre les réseaux gigantesques). */
+	public static final int MAX_NODES = 60000;
 
 	public ElectrifiedTrackBlock(double speedLimit, Properties properties) {
 		super(false, speedLimit, properties);
@@ -46,21 +48,15 @@ public class ElectrifiedTrackBlock extends TrackBlock {
 	}
 
 	@Override
-	protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
-		super.onPlace(state, level, pos, oldState, movedByPiston);
-		if (!level.isClientSide() && !oldState.is(this)) {
-			level.scheduleTick(pos, this, 2);
-		}
-	}
-
-	@Override
 	protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+		super.tick(state, level, pos, random);
 		refreshPower(level.getBlockState(pos), level, pos);
 	}
 
 	@Override
 	protected void updateState(BlockState state, Level level, BlockPos pos, Block neighborBlock) {
-		refreshPower(state, level, pos);
+		super.updateState(state, level, pos, neighborBlock);
+		refreshPower(level.getBlockState(pos), level, pos);
 	}
 
 	private void refreshPower(BlockState state, Level level, BlockPos pos) {
@@ -75,7 +71,10 @@ public class ElectrifiedTrackBlock extends TrackBlock {
 		}
 	}
 
-	/** Parcourt le réseau de voies électrifiées à la recherche d'une source d'énergie. */
+	/**
+	 * Parcourt le réseau de voies électrifiées à la recherche d'une source d'énergie :
+	 * un signal de redstone à moins de {@link #MAX_DISTANCE} rails, ou une sous-station illimitée à n'importe quelle distance.
+	 */
 	private boolean isFed(Level level, BlockPos start) {
 		ArrayDeque<BlockPos> queue = new ArrayDeque<>();
 		ArrayDeque<Integer> depth = new ArrayDeque<>();
@@ -83,24 +82,34 @@ public class ElectrifiedTrackBlock extends TrackBlock {
 		queue.add(start);
 		depth.add(0);
 		visited.add(start);
-		while (!queue.isEmpty()) {
+		while (!queue.isEmpty() && visited.size() < MAX_NODES) {
 			BlockPos pos = queue.poll();
 			int d = depth.poll();
-			if (level.hasNeighborSignal(pos)) {
+			if (touchesInfiniteSource(level, pos)) {
 				return true;
 			}
-			if (d >= MAX_DISTANCE) {
-				continue;
+			if (d <= MAX_DISTANCE && level.hasNeighborSignal(pos)) {
+				return true;
 			}
 			for (Direction dir : Direction.Plane.HORIZONTAL) {
 				BlockPos side = pos.relative(dir);
 				for (BlockPos candidate : new BlockPos[]{side, side.above(), side.below()}) {
-					if (!visited.contains(candidate) && level.getBlockState(candidate).getBlock() instanceof ElectrifiedTrackBlock) {
+					if (!visited.contains(candidate) && level.isLoaded(candidate)
+							&& level.getBlockState(candidate).getBlock() instanceof ElectrifiedTrackBlock) {
 						visited.add(candidate);
 						queue.add(candidate);
 						depth.add(d + 1);
 					}
 				}
+			}
+		}
+		return false;
+	}
+
+	private static boolean touchesInfiniteSource(Level level, BlockPos pos) {
+		for (Direction dir : Direction.values()) {
+			if (level.getBlockState(pos.relative(dir)).getBlock() instanceof InfiniteSubstationBlock) {
+				return true;
 			}
 		}
 		return false;

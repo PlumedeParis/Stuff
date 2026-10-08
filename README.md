@@ -27,6 +27,16 @@ TGV orange, Eurostar, ICE, Shinkansen et voiture verte Shinkansen.
 
 **Marchandises** : tender, wagon couvert, citerne, trémie, porte-conteneurs, grumes, bestiaux, fourgon de queue.
 
+## Réseau ferroviaire dans le monde
+
+Dans les nouveaux mondes (ou nouveaux chunks), un réseau est généré automatiquement :
+- des **lignes à grande vitesse** rectilignes tous les 512 blocs, nord-sud et est-ouest, toutes à la même altitude
+  (y = 70) : **viaducs** au-dessus des vallées et de la mer, **tunnels** éclairés dans le relief ;
+- environ une ligne sur deux est **électrifiée** (caténaires et sous-stations intégrées) ;
+- à chaque intersection : un **croisement**, quatre **raccordements** en diagonale avec **aiguillages** et un poste d'aiguillage ;
+- une **halte** avec quais, marquises et bâtiment voyageurs au milieu de chaque tronçon ;
+- une **gare de village** reliée par un embranchement à la ligne la plus proche.
+
 ## Intérieurs
 
 - Toute la caisse est cliquable et solide : on marche sur le plancher, entre les parois (sur une voie droite).

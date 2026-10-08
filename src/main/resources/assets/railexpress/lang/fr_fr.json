@@ -40,7 +40,7 @@
   "tooltip.railexpress.track.0": "Vitesse max. : 72 km/h",
   "tooltip.railexpress.high_speed_track.0": "Vitesse max. : 198 km/h",
   "tooltip.railexpress.electrified_track.0": "Vitesse max. : 198 km/h",
-  "tooltip.railexpress.electrified_track.1": "Sous tension si reliée à une sous-station (64 rails max.)",
+  "tooltip.railexpress.electrified_track.1": "Sous tension si reliée à une sous-station (64 rails) ou à une sous-station illimitée",
   "tooltip.railexpress.station_track.0": "Les trains s'y arrêtent 6 secondes",
   "tooltip.railexpress.station_track.1": "Alimentée en redstone : les trains passent sans s'arrêter",
   "tooltip.railexpress.substation.0": "Met sous tension les voies électrifiées voisines",
@@ -186,5 +186,18 @@
   "message.railexpress.good_morning": "Bonjour ! Le train a roulé toute la nuit.",
   "message.railexpress.animals_boarded": "Animaux embarqués !",
   "gui.railexpress.fuel_tank": "Réservoir",
-  "tooltip.railexpress.interior": "Clic droit : portes, sièges, lits et rangements"
+  "tooltip.railexpress.interior": "Clic droit : portes, sièges, lits et rangements",
+  "block.railexpress.switch_track": "Aiguillage",
+  "item.railexpress.switch_track": "Aiguillage",
+  "tooltip.railexpress.switch_track.0": "Clic droit : basculer l'aiguillage",
+  "tooltip.railexpress.switch_track.1": "Accroupi + clic droit : changer le côté de la déviation",
+  "block.railexpress.crossing_track": "Croisement",
+  "item.railexpress.crossing_track": "Croisement",
+  "tooltip.railexpress.crossing_track.0": "Deux voies perpendiculaires se croisent",
+  "block.railexpress.infinite_substation": "Sous-station illimitée",
+  "item.railexpress.infinite_substation": "Sous-station illimitée",
+  "tooltip.railexpress.infinite_substation.0": "Créatif : alimente TOUTES les voies électrifiées reliées",
+  "tooltip.railexpress.infinite_substation.1": "Aucune limite de distance",
+  "message.railexpress.switch_straight": "Aiguillage : voie directe",
+  "message.railexpress.switch_diverging": "Aiguillage : voie déviée"
 }

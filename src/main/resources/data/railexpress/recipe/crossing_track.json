@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " T ",
+    "TST",
+    " T "
+  ],
+  "key": {
+    "T": "railexpress:high_speed_track",
+    "S": "railexpress:steel_ingot"
+  },
+  "result": {
+    "id": "railexpress:crossing_track",
+    "count": 2
+  }
+}
