@@ -30,6 +30,9 @@ public class TrainCarRenderer extends EntityRenderer<TrainCarEntity, TrainRender
 	}
 
 	/** Le train est long : on teste la visibilité sur toute sa longueur, pas seulement sur sa petite boîte centrale. */
+	/** Intensité du reflet des vitres (rendu additif). */
+	private static final int GLASS_TINT = 0xFF303C46;
+
 	@Override
 	public boolean shouldRender(TrainCarEntity entity, net.minecraft.client.renderer.culling.Frustum frustum, double x, double y, double z) {
 		if (!entity.shouldRender(x, y, z)) {
@@ -112,9 +115,10 @@ public class TrainCarRenderer extends EntityRenderer<TrainCarEntity, TrainRender
 			collector.submitCustomGeometry(poseStack, RenderTypes.entityCutoutNoCull(WHITE),
 					(pose, consumer) -> rods.render(pose, consumer, light, overlay, -1));
 		}
-		// Vitrages en dernier (translucides)
-		collector.submitCustomGeometry(poseStack, RenderTypes.entityTranslucent(WHITE),
-				(pose, consumer) -> model.glass().render(pose, consumer, light, overlay, -1));
+		// Vitrages : simple reflet additif qui n'écrit pas dans le tampon de profondeur, pour que l'intérieur
+		// reste visible depuis l'extérieur quel que soit l'ordre de rendu des couches
+		collector.submitCustomGeometry(poseStack, RenderTypes.eyes(WHITE),
+				(pose, consumer) -> model.glass().render(pose, consumer, light, overlay, GLASS_TINT));
 		poseStack.popPose();
 		super.submit(state, poseStack, collector, camera);
 	}

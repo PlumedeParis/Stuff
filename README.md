@@ -10,7 +10,7 @@ pupitre de conduite et affichage tête haute. **Tout se fabrique en survie.**
 ## Installation
 
 1. Installer [Fabric Loader](https://fabricmc.net/use/) ≥ 0.19.5 pour Minecraft **1.21.11** et [Fabric API](https://modrinth.com/mod/fabric-api).
-2. Compiler le mod : `./gradlew build` (Gradle doit tourner avec Java 25 ; le mod cible Java 21). Le fichier se trouve dans `build/libs/rail-express-1.1.jar`.
+2. Compiler le mod : `./gradlew build` (Gradle doit tourner avec Java 25 ; le mod cible Java 21). Le fichier se trouve dans `build/libs/rail-express-1.2.jar`.
 3. Copier le `.jar` dans le dossier `mods`.
 
 Pour tester directement : `./gradlew runClient`.
@@ -30,7 +30,7 @@ TGV orange, Eurostar, ICE, Shinkansen et voiture verte Shinkansen.
 ## Réseau ferroviaire dans le monde
 
 Dans les nouveaux mondes (ou nouveaux chunks), un réseau est généré automatiquement :
-- des **lignes à grande vitesse** rectilignes tous les 512 blocs, nord-sud et est-ouest, toutes à la même altitude
+- des **lignes à grande vitesse** rectilignes nord-sud et est-ouest, espacées irrégulièrement (environ 1 000 blocs en moyenne), toutes à la même altitude
   (y = 70) : **viaducs** au-dessus des vallées et de la mer, **tunnels** éclairés dans le relief ;
 - environ **70 %** des lignes sont **électrifiées** (caténaires et sous-stations intégrées) ;
 - à chaque intersection : un **croisement** réglable (tout droit / gauche / droite) et un poste d'aiguillage ;

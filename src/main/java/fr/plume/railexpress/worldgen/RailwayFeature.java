@@ -41,8 +41,12 @@ import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStruct
  * Tout est déterministe : chaque tronçon est calculé indépendamment pour le chunk en cours de génération.
  */
 public class RailwayFeature extends Feature<NoneFeatureConfiguration> {
-	/** Espacement des lignes (en blocs). */
-	public static final int GRID = 512;
+	/** Espacement moyen des lignes (en blocs). Chaque ligne est décalée au hasard pour casser l'effet de quadrillage. */
+	public static final int GRID = 1024;
+	/** Décalage aléatoire maximal d'une ligne. */
+	private static final int JITTER = 300;
+	/** Distance maximale entre un village et une ligne pour qu'il reçoive une gare. */
+	private static final int VILLAGE_REACH = 320;
 	/** Décalage du quadrillage par rapport à l'origine du monde. */
 	public static final int OFFSET = 160;
 	/** Altitude des rails. */
@@ -75,12 +79,39 @@ public class RailwayFeature extends Feature<NoneFeatureConfiguration> {
 		}
 	}
 
-	private static int lineIndex(int coordinate) {
-		return Math.floorDiv(coordinate - OFFSET, GRID);
+	/**
+	 * Position de la k-ième ligne parallèle à l'axe donné ({@code xAxis} : ligne est-ouest, la valeur renvoyée est un Z).
+	 */
+	private static int linePos(int k, boolean xAxis) {
+		long h = k * 6364136223846793005L + (xAxis ? 1442695040888963407L : 7046029254386353131L);
+		h ^= h >>> 29;
+		h *= 0xBF58476D1CE4E5B9L;
+		h ^= h >>> 32;
+		return k * GRID + OFFSET + (int) Math.floorMod(h, 2 * JITTER + 1) - JITTER;
 	}
 
-	private static int nearestLine(int coordinate) {
-		return Math.round((coordinate - OFFSET) / (float) GRID) * GRID + OFFSET;
+	/** Indice de la dernière ligne (parallèle à l'axe donné) située à {@code coordinate} ou avant. */
+	private static int lineIndex(int coordinate, boolean xAxis) {
+		int k = Math.floorDiv(coordinate - OFFSET, GRID);
+		while (linePos(k + 1, xAxis) <= coordinate) {
+			k++;
+		}
+		while (linePos(k, xAxis) > coordinate) {
+			k--;
+		}
+		return k;
+	}
+
+	private static int nearestLine(int coordinate, boolean xAxis) {
+		int k = lineIndex(coordinate, xAxis);
+		int a = linePos(k, xAxis);
+		int b = linePos(k + 1, xAxis);
+		return coordinate - a <= b - coordinate ? a : b;
+	}
+
+	/** Distance de {@code along} (sur une ligne parallèle à {@code xAxis}) à la ligne perpendiculaire la plus proche. */
+	private static int crossingDistance(int along, boolean xAxis) {
+		return Math.abs(along - nearestLine(along, !xAxis));
 	}
 
 	/** La plupart des lignes sont électrifiées (de façon déterministe). */
@@ -108,14 +139,14 @@ public class RailwayFeature extends Feature<NoneFeatureConfiguration> {
 
 		List<Integer> xLines = new ArrayList<>();
 		List<Integer> zLines = new ArrayList<>();
-		for (int k = lineIndex(z0 - reach); k <= lineIndex(z0 + 15 + reach) + 1; k++) {
-			int z = k * GRID + OFFSET;
+		for (int k = lineIndex(z0 - reach, true); k <= lineIndex(z0 + 15 + reach, true) + 1; k++) {
+			int z = linePos(k, true);
 			if (z >= z0 - reach && z <= z0 + 15 + reach) {
 				xLines.add(z);
 			}
 		}
-		for (int k = lineIndex(x0 - reach); k <= lineIndex(x0 + 15 + reach) + 1; k++) {
-			int x = k * GRID + OFFSET;
+		for (int k = lineIndex(x0 - reach, false); k <= lineIndex(x0 + 15 + reach, false) + 1; k++) {
+			int x = linePos(k, false);
 			if (x >= x0 - reach && x <= x0 + 15 + reach) {
 				zLines.add(x);
 			}
@@ -151,21 +182,22 @@ public class RailwayFeature extends Feature<NoneFeatureConfiguration> {
 	// ------------------------------------------------------------------
 
 	/** Vrai à moins de 5 blocs d'une ligne perpendiculaire : zone dégagée autour du croisement. */
-	private static boolean junction(int along) {
-		int rel = Math.floorMod(along - OFFSET, GRID);
-		return rel <= 5 || rel >= GRID - 5;
+	private static boolean junction(int along, boolean xAxis) {
+		return crossingDistance(along, xAxis) <= 5;
 	}
 
-	private static int haltCenter(int along) {
-		return Math.floorDiv(along - OFFSET, GRID) * GRID + OFFSET + GRID / 2;
+	/** Centre de la halte située entre les deux croisements qui encadrent {@code along}. */
+	private static int haltCenter(int along, boolean xAxis) {
+		int k = lineIndex(along, !xAxis);
+		return (linePos(k, !xAxis) + linePos(k + 1, !xAxis)) / 2;
 	}
 
 	/** Terrassements du tronçon de ligne qui traverse le chunk. {@code fixed} est la coordonnée constante de la ligne. */
 	private void lineBed(Chunk c, int fixed, boolean xAxis) {
 		int from = xAxis ? c.x0 : c.z0;
 		for (int along = from; along < from + 16; along++) {
-			boolean halt = Math.abs(along - haltCenter(along)) <= HALT_HALF + 2;
-			corridor(c, along, fixed, xAxis, halt ? 6 : 3, halt || junction(along));
+			boolean halt = Math.abs(along - haltCenter(along, xAxis)) <= HALT_HALF + 2;
+			corridor(c, along, fixed, xAxis, halt ? 6 : 3, halt || junction(along, xAxis));
 		}
 	}
 
@@ -174,9 +206,8 @@ public class RailwayFeature extends Feature<NoneFeatureConfiguration> {
 		boolean electric = electrified(fixed, xAxis);
 		int from = xAxis ? c.x0 : c.z0;
 		for (int along = from; along < from + 16; along++) {
-			int rel = Math.floorMod(along - OFFSET, GRID);
-			boolean nearCrossing = rel < D + 4 || rel > GRID - D - 4;
-			int haltCenter = haltCenter(along);
+			boolean nearCrossing = crossingDistance(along, xAxis) < D + 4;
+			int haltCenter = haltCenter(along, xAxis);
 			boolean halt = Math.abs(along - haltCenter) <= HALT_HALF + 2;
 			boolean tunnel = isTunnel(c, along, fixed, xAxis);
 			BlockState rail = trackState(electric, xAxis ? RailShape.EAST_WEST : RailShape.NORTH_SOUTH);
@@ -194,8 +225,9 @@ public class RailwayFeature extends Feature<NoneFeatureConfiguration> {
 				platformSlice(c, along, fixed, xAxis, along - haltCenter, along == haltCenter + HALT_HALF || along == haltCenter - HALT_HALF);
 			}
 		}
-		int haltCenter = haltCenter(from);
-		for (int center : new int[]{haltCenter - GRID, haltCenter, haltCenter + GRID}) {
+		int k = lineIndex(from, !xAxis);
+		for (int i = k - 1; i <= k + 1; i++) {
+			int center = (linePos(i, !xAxis) + linePos(i + 1, !xAxis)) / 2;
 			if (Math.abs(center - from) < 40) {
 				stationBuilding(c, center, fixed, xAxis, 1);
 			}
@@ -236,7 +268,9 @@ public class RailwayFeature extends Feature<NoneFeatureConfiguration> {
 	 */
 	private static void corridor(Chunk c, int along, int fixed, boolean xAxis, int half, boolean open) {
 		boolean tunnel = !open && solid(get(c, along, L + 4, fixed, xAxis)) && solid(get(c, along, L + 7, fixed, xAxis));
-		boolean viaduct = !solid(get(c, along, L - 2, fixed, xAxis));
+		// Viaduc dès qu'il y a du vide ou de l'eau sous le tablier (même au-dessus d'un îlot peu profond)
+		boolean viaduct = !solid(get(c, along, L - 2, fixed, xAxis)) || !solid(get(c, along, L - 3, fixed, xAxis))
+				|| !solid(get(c, along, L - 4, fixed, xAxis));
 		BlockState bricks = Blocks.STONE_BRICKS.defaultBlockState();
 		for (int o = -half; o <= half; o++) {
 			int across = fixed + o;
@@ -253,13 +287,14 @@ public class RailwayFeature extends Feature<NoneFeatureConfiguration> {
 				// Ballast sous la voie
 				put(c, along, L - 1, across, xAxis, Blocks.ANDESITE.defaultBlockState());
 			} else if (a == 2) {
-				if (viaduct) {
-					put(c, along, L - 1, across, xAxis, Blocks.POLISHED_ANDESITE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP));
-				} else if (!solid(get(c, along, L - 1, across, xAxis))) {
-					put(c, along, L - 1, across, xAxis, Blocks.COARSE_DIRT.defaultBlockState());
-				}
+				put(c, along, L - 1, across, xAxis, viaduct
+						? Blocks.POLISHED_ANDESITE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP)
+						: Blocks.POLISHED_ANDESITE.defaultBlockState());
 			} else if (a == 3 && tunnel) {
 				put(c, along, L - 1, across, xAxis, bricks);
+			} else if (a == 3 && viaduct && !open) {
+				// Pas de terre ni de sable qui dépasse au bord du tablier
+				put(c, along, L - 1, across, xAxis, Blocks.AIR.defaultBlockState());
 			}
 			// Garde-corps en fer forgé au bord du tablier
 			if (viaduct && !tunnel && !open && a == 2) {
@@ -426,7 +461,7 @@ public class RailwayFeature extends Feature<NoneFeatureConfiguration> {
 		int regionSize = placement.spacing() * 16;
 		int cx = c.x0 + 8;
 		int cz = c.z0 + 8;
-		int range = GRID / 2 + 64;
+		int range = VILLAGE_REACH + 64;
 		for (int rx = Math.floorDiv(cx - range, regionSize); rx <= Math.floorDiv(cx + range, regionSize); rx++) {
 			for (int rz = Math.floorDiv(cz - range, regionSize); rz <= Math.floorDiv(cz + range, regionSize); rz++) {
 				ChunkPos chunk = placement.getPotentialStructureChunk(level.getSeed(), rx * placement.spacing(), rz * placement.spacing());
@@ -449,18 +484,21 @@ public class RailwayFeature extends Feature<NoneFeatureConfiguration> {
 
 	/** Embranchement depuis la ligne la plus proche jusqu'à une gare terminus au bord du village. */
 	private void villageStation(Chunk c, int vx, int vz) {
-		int zl = nearestLine(vz);
-		int xl = nearestLine(vx);
+		int zl = nearestLine(vz, true);
+		int xl = nearestLine(vx, false);
 		boolean toXLine = Math.abs(vz - zl) <= Math.abs(vx - xl);
+		if (Math.min(Math.abs(vz - zl), Math.abs(vx - xl)) > VILLAGE_REACH) {
+			return; // village trop loin du réseau
+		}
 		// Coordonnées « le long de la ligne principale » (a) et « vers le village » (b)
 		int lineFixed = toXLine ? zl : xl;
 		int a = toXLine ? vx : vz;
 		int b = toXLine ? vz : vx;
-		int crossingA = nearestLine(a);
+		int crossingA = nearestLine(a, !toXLine);
 		if (Math.abs(a - crossingA) < 30) {
 			a = crossingA + (a >= crossingA ? 30 : -30);
 		}
-		int haltCenter = Math.floorDiv(a - OFFSET, GRID) * GRID + OFFSET + GRID / 2;
+		int haltCenter = haltCenter(a, toXLine);
 		if (Math.abs(a - haltCenter) < HALT_HALF + 12) {
 			a = haltCenter + (a >= haltCenter ? HALT_HALF + 12 : -(HALT_HALF + 12));
 		}
